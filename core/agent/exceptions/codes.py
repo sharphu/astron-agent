@@ -175,3 +175,8 @@ c_40376 = (
 )
 
 c_40500 = (40500, "Agent internal service error")
+
+c_40600 = (40600, "Bot Agent error: protocol synchronization failed")
+c_40601 = (40601, "Bot Agent error: publish operation failed")
+c_40602 = (40602, "Bot Agent error: auth operation failed")
+c_40603 = (40603, "Bot Agent error: bot not found")

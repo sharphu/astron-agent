@@ -63,6 +63,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(router.router_v1)
+    app.include_router(router.router_v2)
 
     @app.exception_handler(AgentExc)  # type: ignore[misc]
     async def agent_exception_handler(_request: Request, exc: AgentExc) -> JSONResponse:
