@@ -68,7 +68,7 @@ class DummyLLM(BaseLLMModel):
     ) -> AsyncIterator[Any]:
         """Directly return async iterable for use with async for."""
         chunk = MagicMock()
-        # 模拟 ReasonChatCompletionChunk 风格 delta
+        # Simulate ReasonChatCompletionChunk style delta
         delta = MagicMock()
         delta.model_dump.return_value = {
             "reasoning_content": "think",

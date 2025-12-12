@@ -33,7 +33,7 @@ class BaseLLMModel(BaseModel):
 
     def _handle_api_timeout_error(self, error: APITimeoutError) -> None:
         """Handle API timeout error"""
-        raise PluginExc(-1, "请求服务超时", om=str(error)) from error
+        raise PluginExc(-1, "Request service timeout", om=str(error)) from error
 
     def _handle_api_error(self, error: APIError, sp: Optional[Span]) -> None:
         """Handle API error"""

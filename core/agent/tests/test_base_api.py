@@ -300,7 +300,7 @@ class TestCompletionBase:
             ):
                 results.append(result)
 
-            # 应该产生错误响应
+            # Should produce error response
             assert len(results) > 0
 
     @pytest.mark.asyncio

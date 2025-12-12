@@ -20,7 +20,7 @@ from agent.service.runner.workflow_agent_runner import WorkflowAgentRunner
 
 @dataclass
 class KnowledgeQueryParams:
-    """知识查询参数"""
+    """Knowledge query parameters"""
 
     repo_ids: list[str]
     doc_ids: list[str]
@@ -33,7 +33,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
     inputs: CustomCompletionInputs
 
     async def build(self) -> WorkflowAgentRunner:
-        """构建"""
+        """Build"""
         with self.span.start("BuildRunner") as sp:
             model = await self.create_model(
                 app_id=self.app_id,
@@ -90,7 +90,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
     async def query_knowledge_by_workflow(
         self, knowledge_list: list[CustomCompletionPluginKnowledgeInputs], span: Span
     ) -> tuple[list, str]:
-        """查询知识库"""
+        """Query knowledge base"""
         with span.start("QueryKnowledgeByWorkflow") as sp:
             tasks = self._create_knowledge_tasks(knowledge_list, sp)
 
@@ -113,7 +113,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
     def _create_knowledge_tasks(
         self, knowledge_list: list[CustomCompletionPluginKnowledgeInputs], span: Span
     ) -> list:
-        """创建知识查询任务"""
+        """Create knowledge query tasks"""
         repo_type_map = {
             "1": "AIUI-RAG2",
             "2": "CBG-RAG",
@@ -125,7 +125,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
             repo_ids = knowledge.match.repo_ids or []
             doc_ids = knowledge.match.doc_ids or []
 
-            # 添加调试日志
+            # Add debug logs
             span.add_info_events(
                 {
                     "knowledge_name": knowledge.name,
@@ -147,7 +147,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
                 else "AIUI-RAG2"
             )
 
-            # 添加映射后的日志
+            # Add mapped logs
             span.add_info_events({"mapped_rag_type": repo_type})
 
             params = KnowledgeQueryParams(
@@ -165,7 +165,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
     def _process_knowledge_results(
         self, results: list
     ) -> tuple[list, dict[str, list[dict[str, str]]]]:
-        """处理知识查询结果"""
+        """Process knowledge query results"""
         metadata_list = []
         metadata_map: dict[str, list[dict[str, str]]] = {}
 
@@ -188,7 +188,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
         return metadata_list, metadata_map
 
     def _process_content_references(self, content: str, references: dict) -> str:
-        """处理内容中的引用"""
+        """Process references in content"""
         for ref_key, ref_value in references.items():
             if isinstance(ref_value, dict):
                 ref_format = ref_value.get("format", "")
@@ -207,7 +207,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
         return content
 
     def _extract_backgrounds(self, metadata_list: list) -> str:
-        """提取背景信息"""
+        """Extract background information"""
         background_list = []
         for metadata in metadata_list:
             chunk = metadata.get("chunk", [])

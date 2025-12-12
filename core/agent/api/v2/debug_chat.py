@@ -1,26 +1,20 @@
 import json
-
-from agent.api.schemas_v2.bot_chat_inputs import DebugChat
 from typing import Annotated, Any, AsyncGenerator, cast
-from agent.api.schemas_v2.bot_dsl import Dsl
 
-from fastapi import APIRouter, Header
-from pydantic import ConfigDict
-from starlette.responses import StreamingResponse
 from common.otlp.trace.span import Span
 from common.service import get_db_service
 from common.service.db.db_service import session_getter
-from agent.domain.models.bot import Bot, BotTenant
-from agent.exceptions.bot_exc import (
-    BotNotFoundExc,
-    TenantNotFoundExc,
-)
-from agent.exceptions.agent_exc import AgentInternalExc
+from fastapi import APIRouter, Header
+from pydantic import ConfigDict
+from starlette.responses import StreamingResponse
 
+from agent.api.schemas_v2.bot_chat_inputs import DebugChat
+from agent.api.schemas_v2.bot_dsl import Dsl
 from agent.api.v1.base_api import CompletionBase
+from agent.domain.models.bot import Bot, BotTenant
+from agent.exceptions.agent_exc import AgentInternalExc
 from agent.service.builder.debug_chat_builder import DebugChatRunnerBuilder
 from agent.service.runner.debug_chat_runner import DebugChatRunner
-
 
 debug_chat_router = APIRouter()
 
@@ -29,6 +23,7 @@ headers = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
 
 class CustomChatCompletion(CompletionBase):
     """Custom chat completion for debug chat agents."""
+
     bot_id: str
     uid: str
     question: str
@@ -58,7 +53,9 @@ class CustomChatCompletion(CompletionBase):
                     "uid": self.uid,
                 }
             )
-            sp.add_info_events({"debug-chat-inputs": self.inputs.model_dump_json(by_alias=True)})
+            sp.add_info_events(
+                {"debug-chat-inputs": self.inputs.model_dump_json(by_alias=True)}
+            )
             node_trace = await self.build_node_trace(bot_id=self.bot_id, span=sp)
             meter = await self.build_meter(sp)
 

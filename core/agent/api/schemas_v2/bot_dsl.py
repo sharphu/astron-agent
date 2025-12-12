@@ -18,7 +18,7 @@ class KnowledgeInputs(BaseModel):
 
     @model_validator(mode="after")
     def validate_docs_by_type(self) -> "KnowledgeInputs":
-        """根据 type 字段验证 properties.docs 字段是否必传"""
+        """Validate whether properties.docs field is required based on type field"""
         if self.type == "CBG-RAG" and self.properties.docs is None:
             raise ValueError("docs field is required when type is 'CBG-RAG'")
         return self
@@ -108,7 +108,7 @@ class VariableInputs(BaseModel):
 
     @model_validator(mode="after")
     def validate_default_value_type(self) -> "VariableInputs":
-        """根据 type 字段验证 default_value 的类型"""
+        """Validate default_value type based on type field"""
         expected_type = {"string": str, "object": dict, "array": list}[self.type]
         if not isinstance(self.default_value, expected_type):
             raise ValueError(

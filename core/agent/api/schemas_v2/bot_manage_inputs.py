@@ -1,6 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
 from agent.api.schemas_v2.bot_dsl import Dsl
 
 

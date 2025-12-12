@@ -4,26 +4,21 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 from common.otlp.trace.span import Span
+
 from agent.api.schemas_v2.bot_chat_inputs import Chat
-from agent.api.schemas.workflow_agent_inputs import (
-    CustomCompletionInputs,
-    CustomCompletionPluginKnowledgeInputs,
-)
+from agent.api.schemas_v2.bot_dsl import Dsl, KnowledgeInputs
 from agent.service.builder.base_builder import (
     BaseApiBuilder,
     CotRunnerParams,
     RunnerParams,
 )
 from agent.service.plugin.knowledge import KnowledgePluginFactory
-from agent.service.runner.workflow_agent_runner import WorkflowAgentRunner
-from agent.api.schemas_v2.bot_dsl import Dsl
 from agent.service.runner.debug_chat_runner import DebugChatRunner
-from agent.api.schemas_v2.bot_dsl import KnowledgeInputs
 
 
 @dataclass
 class KnowledgeQueryParams:
-    """知识查询参数"""
+    """Knowledge query parameters"""
 
     repo_ids: list[str]
     doc_ids: list[str]
@@ -37,7 +32,7 @@ class ChatRunnerBuilder(BaseApiBuilder):
     dsl: Dsl
 
     async def build(self) -> DebugChatRunner:
-        """构建"""
+        """Build"""
         with self.span.start("BuildRunner") as sp:
             model = await self.create_model(
                 app_id=self.app_id,
@@ -47,12 +42,32 @@ class ChatRunnerBuilder(BaseApiBuilder):
             )
 
             plugins = await self.build_plugins(
-                tool_ids=[i.id for i in self.dsl.plugin.link_tools] if self.dsl.plugin.link_tools else [],
-                mcp_server_ids=[i.server_id for i in self.dsl.plugin.link_mcp_servers] if self.dsl.plugin.link_mcp_servers else [],
-                mcp_server_urls=[i.server_url for i in self.dsl.plugin.cus_mcp_servers] if self.dsl.plugin.cus_mcp_servers else [],
-                workflow_ids=[i.flow_id for i in self.dsl.plugin.workflows] if self.dsl.plugin.workflows else [],
+                tool_ids=(
+                    [i.id for i in self.dsl.plugin.link_tools]
+                    if self.dsl.plugin.link_tools
+                    else []
+                ),
+                mcp_server_ids=(
+                    [i.server_id for i in self.dsl.plugin.link_mcp_servers]
+                    if self.dsl.plugin.link_mcp_servers
+                    else []
+                ),
+                mcp_server_urls=(
+                    [i.server_url for i in self.dsl.plugin.cus_mcp_servers]
+                    if self.dsl.plugin.cus_mcp_servers
+                    else []
+                ),
+                workflow_ids=(
+                    [i.flow_id for i in self.dsl.plugin.workflows]
+                    if self.dsl.plugin.workflows
+                    else []
+                ),
             )
-            metadata_list, knowledge = await self.query_knowledge_by_workflow(self.dsl.rag.knowledges, sp) if self.dsl.rag.knowledges else [], ""
+            metadata_list, knowledge = (
+                await self.query_knowledge_by_workflow(self.dsl.rag.knowledges, sp)
+                if self.dsl.rag.knowledges
+                else []
+            ), ""
 
             chat_params = RunnerParams(
                 model=model,
@@ -91,7 +106,7 @@ class ChatRunnerBuilder(BaseApiBuilder):
     async def query_knowledge_by_workflow(
         self, knowledge_list: list[KnowledgeInputs], span: Span
     ) -> tuple[list, str]:
-        """查询知识库"""
+        """Query knowledge base"""
         with span.start("QueryKnowledgeByWorkflow") as sp:
             tasks = self._create_knowledge_tasks(knowledge_list, sp)
 
@@ -114,14 +129,14 @@ class ChatRunnerBuilder(BaseApiBuilder):
     def _create_knowledge_tasks(
         self, knowledge_list: list[KnowledgeInputs], span: Span
     ) -> list:
-        """创建知识查询任务"""
+        """Create knowledge query tasks"""
         tasks = []
 
         for knowledge in knowledge_list:
             repo_ids = knowledge.properties.repos or []
             doc_ids = knowledge.properties.docs or []
 
-            # 添加调试日志
+            # Add debug logs
             span.add_info_events(
                 {
                     "knowledge_name": knowledge.name,
@@ -139,7 +154,7 @@ class ChatRunnerBuilder(BaseApiBuilder):
             score_threshold = knowledge.properties.min_score or 0.3
             repo_type = knowledge.type
 
-            # 添加映射后的日志
+            # Add mapped logs
             span.add_info_events({"mapped_rag_type": repo_type})
 
             params = KnowledgeQueryParams(
@@ -157,7 +172,7 @@ class ChatRunnerBuilder(BaseApiBuilder):
     def _process_knowledge_results(
         self, results: list
     ) -> tuple[list, dict[str, list[dict[str, str]]]]:
-        """处理知识查询结果"""
+        """Process knowledge query results"""
         metadata_list = []
         metadata_map: dict[str, list[dict[str, str]]] = {}
 
@@ -180,7 +195,7 @@ class ChatRunnerBuilder(BaseApiBuilder):
         return metadata_list, metadata_map
 
     def _process_content_references(self, content: str, references: dict) -> str:
-        """处理内容中的引用"""
+        """Process references in content"""
         for ref_key, ref_value in references.items():
             if isinstance(ref_value, dict):
                 ref_format = ref_value.get("format", "")
@@ -199,7 +214,7 @@ class ChatRunnerBuilder(BaseApiBuilder):
         return content
 
     def _extract_backgrounds(self, metadata_list: list) -> str:
-        """提取背景信息"""
+        """Extract background information"""
         background_list = []
         for metadata in metadata_list:
             chunk = metadata.get("chunk", [])

@@ -1,27 +1,21 @@
 import json
-
-from agent.api.schemas_v2.bot_chat_inputs import Chat
 from typing import Annotated, Any, AsyncGenerator, cast
-from agent.api.schemas_v2.bot_dsl import Dsl
 
-from fastapi import APIRouter, Header
-from pydantic import ConfigDict
-from starlette.responses import StreamingResponse
 from common.otlp.trace.span import Span
 from common.service import get_db_service
 from common.service.db.db_service import session_getter
-from agent.domain.models.bot import Bot, BotTenant, BotRelease
-from agent.exceptions.bot_exc import (
-    BotNotFoundExc,
-    AppAuthFailedExc,
-)
-from agent.exceptions.agent_exc import AgentInternalExc
+from fastapi import APIRouter, Header
+from pydantic import ConfigDict
+from starlette.responses import StreamingResponse
+
+from agent.api.schemas_v2.bot_chat_inputs import Chat
+from agent.api.schemas_v2.bot_dsl import Dsl
 from agent.api.v1.base_api import CompletionBase
-from agent.service.builder.debug_chat_builder import DebugChatRunnerBuilder
+from agent.domain.models.bot import BotRelease
+from agent.exceptions.agent_exc import AgentInternalExc
+from agent.infra.app_auth import APPAuth
 from agent.service.builder.chat_builder import ChatRunnerBuilder
 from agent.service.runner.debug_chat_runner import DebugChatRunner
-from agent.infra.app_auth import APPAuth
-
 
 chat_router = APIRouter()
 
@@ -30,6 +24,7 @@ headers = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
 
 class CustomChatCompletion(CompletionBase):
     """Custom chat completion for debug chat agents."""
+
     bot_id: str
     uid: str
     question: str
@@ -61,7 +56,9 @@ class CustomChatCompletion(CompletionBase):
                     "uid": self.uid,
                 }
             )
-            sp.add_info_events({"chat-inputs": self.inputs.model_dump_json(by_alias=True)})
+            sp.add_info_events(
+                {"chat-inputs": self.inputs.model_dump_json(by_alias=True)}
+            )
             node_trace = await self.build_node_trace(bot_id=self.bot_id, span=sp)
             meter = await self.build_meter(sp)
 
@@ -106,16 +103,23 @@ async def bot_chat(
     span = Span(app_id=x_consumer_username)
     with span.start("BotChat") as sp:
         sp.set_attribute("bot_id", inputs.bot_id)
-        sp.add_info_events(
-            {"bot-chat-inputs": inputs.model_dump_json(by_alias=True)}
-        )
+        sp.add_info_events({"bot-chat-inputs": inputs.model_dump_json(by_alias=True)})
 
         await _validate_app_auth(x_consumer_username, sp)
         with session_getter(get_db_service()) as session:
             # Query Bot table data using bot_id
-            bot_release = session.query(BotRelease).filter(BotRelease.bot_id == inputs.bot_id, BotRelease.version == inputs.version_name).first()
+            bot_release = (
+                session.query(BotRelease)
+                .filter(
+                    BotRelease.bot_id == inputs.bot_id,
+                    BotRelease.version == inputs.version_name,
+                )
+                .first()
+            )
             if not bot_release:
-                raise AgentInternalExc(f"Bot release with bot_id:{inputs.bot_id} version_name:{inputs.version_name} not found")
+                raise AgentInternalExc(
+                    f"Bot release with bot_id:{inputs.bot_id} version_name:{inputs.version_name} not found"
+                )
 
             completion = CustomChatCompletion(
                 app_id=x_consumer_username,

@@ -19,15 +19,15 @@ class BotResponse(BaseModel):
 def build_bot_response(
     error: BotExc, data: Optional[dict] = None, message: Optional[str] = None
 ) -> BotResponse:
-    """构建 Bot 管理响应（成功或失败）
+    """Build Bot management response (success or failure)
 
     Args:
-        error: 错误对象（BotExc(*c_0) 表示成功）
-        data: 返回的数据，成功时传入，失败时为 None
-        message: 可选的自定义消息，如果提供则覆盖 error.m
+        error: Error object (BotExc(*c_0) indicates success)
+        data: Returned data, passed in on success, None on failure
+        message: Optional custom message, if provided, overrides error.m
 
     Returns:
-        BotResponse: 响应对象
+        BotResponse: Response object
     """
 
     return BotResponse(code=error.c, message=message or error.m, data=data)

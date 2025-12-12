@@ -40,7 +40,7 @@ class DebugChatRunner(BaseModel):
     async def run(
         self, span: Span, node_trace: NodeTrace
     ) -> AsyncGenerator[ReasonChatCompletionChunk, None]:
-        """执行"""
+        """Execute"""
 
         if self.knowledge_metadata_list:
             yield await self.convert_message(
@@ -69,7 +69,7 @@ class DebugChatRunner(BaseModel):
     async def convert_message(
         self, message: AgentResponse, span: Span, node_trace: NodeTrace
     ) -> ReasonChatCompletionChunk:
-        """将AgentResponse转为返回帧"""
+        """Convert AgentResponse to return frame"""
 
         chunk = ReasonChatCompletionChunk(
             id="",
@@ -96,14 +96,14 @@ class DebugChatRunner(BaseModel):
     def _handle_reasoning_content(
         self, chunk: ReasonChatCompletionChunk, message: AgentResponse
     ) -> None:
-        """处理推理内容"""
+        """Handle reasoning content"""
         if isinstance(message.content, str):
             chunk.choices[0].delta.reasoning_content = message.content
 
     def _handle_content(
         self, chunk: ReasonChatCompletionChunk, message: AgentResponse
     ) -> None:
-        """处理普通内容"""
+        """Handle normal content"""
         if isinstance(message.content, str):
             chunk.choices[0].delta.content = message.content
 
@@ -114,7 +114,7 @@ class DebugChatRunner(BaseModel):
         span: Span,
         node_trace: NodeTrace,
     ) -> None:
-        """处理CoT步骤"""
+        """Handle CoT step"""
         if not isinstance(message.content, CotStep):
             return
 
@@ -148,7 +148,7 @@ class DebugChatRunner(BaseModel):
         span: Span,
         node_trace: NodeTrace,
     ) -> None:
-        """处理插件追踪"""
+        """Handle plugin trace"""
         called_plugin = getattr(content, "plugin", None)
         if not (
             called_plugin is not None
@@ -182,7 +182,7 @@ class DebugChatRunner(BaseModel):
         )
 
     def _determine_node_id(self, called_plugin: Any) -> str:
-        """确定节点ID"""
+        """Determine node ID"""
         if not hasattr(called_plugin, "typ"):
             return ""
 
@@ -204,7 +204,7 @@ class DebugChatRunner(BaseModel):
     def _handle_log(
         self, chunk: ReasonChatCompletionChunk, message: AgentResponse
     ) -> None:
-        """处理日志消息"""
+        """Handle log message"""
         chunk.object = "chat.completion.log"
         if isinstance(message.content, str):
             chunk.logs.append(message.content)
@@ -212,7 +212,7 @@ class DebugChatRunner(BaseModel):
     def _handle_knowledge_metadata(
         self, chunk: ReasonChatCompletionChunk, message: AgentResponse
     ) -> None:
-        """处理知识元数据"""
+        """Handle knowledge metadata"""
         chunk.choices[0].delta.tool_calls = [
             ReasonChoiceDeltaToolCall(
                 index=0,

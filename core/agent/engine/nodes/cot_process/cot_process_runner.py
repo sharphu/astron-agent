@@ -30,7 +30,7 @@ class CotProcessRunner(RunnerBase):
         span: Span,
         node_trace: NodeTrace,
     ) -> AsyncIterator[AgentResponse]:
-        """使用cot过程进行思考回答"""
+        """Use CoT process for thinking and answering"""
 
         with span.start("RunCotProcessAgent") as sp:
 

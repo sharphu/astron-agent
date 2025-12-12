@@ -50,7 +50,9 @@ class CustomChatCompletion(CompletionBase):
                     "uid": self.uid,
                 }
             )
-            sp.add_info_events({"workflow-agent-inputs": self.inputs.model_dump_json(by_alias=True)})
+            sp.add_info_events(
+                {"workflow-agent-inputs": self.inputs.model_dump_json(by_alias=True)}
+            )
             node_trace = await self.build_node_trace(bot_id=self.bot_id, span=sp)
             meter = await self.build_meter(sp)
 
