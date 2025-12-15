@@ -29,7 +29,6 @@ CREATE TABLE `bot` (
   `id` bigint(19) NOT NULL COMMENT '主键id、雪花id',
   `app_id` varchar(32) NOT NULL COMMENT '租户应用标识',
   `dsl` TEXT NOT NULL COMMENT '助手编排协议',
-  `pub_status` bigint(8) NOT NULL COMMENT '助手当前状态：0-草稿、1-已发布',
   `create_at` datetime NOT NULL COMMENT '创建时间',
   `update_at` datetime NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),

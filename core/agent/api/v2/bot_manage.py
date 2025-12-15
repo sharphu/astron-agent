@@ -154,7 +154,6 @@ async def protocol_synchronization(
                         id=inputs.id,
                         app_id=app_id,
                         dsl=dsl_json,
-                        pub_status=0,  # Default status is draft
                         create_at=current_time,
                         update_at=current_time,
                     )
@@ -167,7 +166,6 @@ async def protocol_synchronization(
                 response_data = {
                     "id": bot.id,
                     "app_id": bot.app_id,
-                    "pub_status": bot.pub_status,
                     "create_at": bot.create_at.isoformat() if bot.create_at else None,
                     "update_at": bot.update_at.isoformat() if bot.update_at else None,
                 }
@@ -185,7 +183,7 @@ async def protocol_synchronization(
 async def publish(
     x_consumer_username: Annotated[str, Header()], inputs: Publish
 ) -> BotResponse:
-    """Publish assistant: If dsl is provided, use it to create BotRelease; otherwise query from Bot table and create BotRelease, and update Bot's pub_status to 1"""
+    """Publish assistant: If dsl is provided, use it to create BotRelease; otherwise query from Bot table and create BotRelease"""
     error: BotExc = BotExc(*c_0)
     span = Span(
         app_id=x_consumer_username,
@@ -251,11 +249,6 @@ async def publish(
                         update_at=current_time,
                     )
                     session.add(bot_release)
-
-                    # Update Bot table's pub_status to 1 (published)
-                    bot.pub_status = 1
-                    bot.update_at = current_time
-                    session.add(bot)
 
                     session.commit()
                     session.refresh(bot_release)

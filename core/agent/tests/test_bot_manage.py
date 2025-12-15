@@ -328,7 +328,6 @@ class TestProtocolSynchronization:
                 assert response.data is not None
                 assert response.data["id"] == "test_bot_id"
                 assert response.data["app_id"] == "test_app"
-                assert response.data["pub_status"] == 0
                 mock_session.add.assert_called_once()
                 mock_session.commit.assert_called_once()
 

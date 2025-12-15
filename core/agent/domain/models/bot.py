@@ -15,9 +15,6 @@ class Bot(SQLModel, table=True):  # type: ignore[valid-type,misc]
     )
     app_id: str = Field(..., description="Tenant application identifier")
     dsl: str = Field(..., description="Assistant orchestration protocol")
-    pub_status: int = Field(
-        ..., description="Assistant current status: 0-draft, 1-published"
-    )
     create_at: datetime = Field(
         default_factory=datetime.now, description="Creation time"
     )
