@@ -194,7 +194,7 @@ const OfficialModelContent: React.FC = () => {
             <CategoryAside
               tree={[]}
               providerFilter={state.providerFilter}
-              providerOptions={getVendorOptions()}
+              providerOptions={getSpecificProviderOptions()}
               onProviderChange={filters.handleProviderFilterChange}
               showContextLength={false}
               showModelStatus={false}

@@ -215,7 +215,7 @@ const CategoryAside = forwardRef<CategoryAsideRef, CategoryAsideProps>(
             {providerOptions.length > 0 && (
               <>
                 <span className="flex pl-7 pt-1" style={oneLevelNameStyle}>
-                  {t('model.providerFilter')}
+                  模型筛选
                 </span>
                 {providerOptions.map(option => (
                   <div
