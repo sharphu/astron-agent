@@ -3,13 +3,21 @@ import { Button } from 'antd';
 import { useTranslation } from 'react-i18next';
 import ModelManagementHeader from '../components/model-management-header';
 import CategoryAside from '../components/category-aside';
-import GroupedProviderCards from '../components/grouped-provider-cards';
 import { CreateModal } from '../components/modal-component';
 import { ModelProvider, useModelContext } from '../context/model-context';
 import { useModelFilters } from '../hooks/use-model-filters';
 import { ModelProviderType } from '@/types/model';
 import { getModelProviderLabel } from '../utils/provider';
-import { mapProviderToVendor, getVendorOptions } from '../utils/provider-group';
+import { mapProviderToVendor, getSpecificProviderOptions } from '../utils/provider-group';
+import chatgptIcon from '@/assets/imgs/modelManage/providers/custom/chatgpt.svg';
+import anthropicIcon from '@/assets/imgs/modelManage/providers/custom/anthropic.svg';
+import googleIcon from '@/assets/imgs/modelManage/providers/custom/google.svg';
+import deepseekIcon from '@/assets/imgs/modelManage/providers/custom/deepseek.svg';
+import minimaxIcon from '@/assets/imgs/modelManage/providers/custom/minimax.svg';
+import zhipuIcon from '@/assets/imgs/modelManage/providers/custom/zhipu.svg';
+import qwenIcon from '@/assets/imgs/modelManage/providers/custom/qwen.svg';
+import moonshotIcon from '@/assets/imgs/modelManage/providers/custom/moonshot.svg';
+import doubaoIcon from '@/assets/imgs/modelManage/providers/custom/doubao.svg';
 
 interface OfficialProviderCard {
   provider: ModelProviderType;
@@ -20,13 +28,56 @@ interface OfficialProviderCard {
   endpoint: string;
 }
 
+const ProviderLogoGlyph: React.FC<{ provider: ModelProviderType }> = ({
+  provider,
+}) => {
+  const imageLogoMap: Record<ModelProviderType, string> = {
+    [ModelProviderType.CHATGPT]: chatgptIcon,
+    [ModelProviderType.OPENAI]: chatgptIcon,
+    [ModelProviderType.ANTHROPIC]: anthropicIcon,
+    [ModelProviderType.DEEPSEEK]: deepseekIcon,
+    [ModelProviderType.GOOGLE]: googleIcon,
+    [ModelProviderType.MINIMAX]: minimaxIcon,
+    [ModelProviderType.ZHIPU]: zhipuIcon,
+    [ModelProviderType.QWEN]: qwenIcon,
+    [ModelProviderType.MOONSHOT]: moonshotIcon,
+    [ModelProviderType.DOUBAO]: doubaoIcon,
+  };
+
+  return (
+    <img
+      src={imageLogoMap[provider]}
+      alt={getModelProviderLabel(provider)}
+      className="h-8 w-8 object-contain"
+    />
+  );
+};
+
+const ProviderLogoBadge: React.FC<{ provider: ModelProviderType }> = ({
+  provider,
+}) => {
+  return (
+    <div className="rounded-2xl border border-[#E7EBF4] bg-white px-3 py-3 shadow-[0_10px_24px_rgba(31,35,41,0.06)]">
+      <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-[14px] border border-[#EEF1F7] bg-white">
+        <ProviderLogoGlyph provider={provider} />
+      </div>
+    </div>
+  );
+};
+
 const OfficialModelContent: React.FC = () => {
   const { t } = useTranslation();
   const { state, actions } = useModelContext();
   const filters = useModelFilters();
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [searchInput, setSearchInput] = useState<string>('');
   const [selectedCard, setSelectedCard] = useState<OfficialProviderCard | null>(
     null
   );
+
+  const handleProviderChange = (provider?: string) => {
+    setSelectedProvider(provider || '');
+  };
 
   const providerCards = useMemo<OfficialProviderCard[]>(
     () => [
@@ -112,14 +163,32 @@ const OfficialModelContent: React.FC = () => {
     setSelectedCard(card);
   };
 
+  const visibleCards = useMemo(() => {
+    const keyword = searchInput.trim().toLowerCase();
+
+    return providerCards.filter(card => {
+      // 这里我们检查的是具体的模型提供商
+      const matchedProvider =
+        !selectedProvider || selectedProvider === card.provider;
+      const matchedKeyword =
+        !keyword ||
+        card.title.toLowerCase().includes(keyword) ||
+        card.subtitle.toLowerCase().includes(keyword) ||
+        card.description.toLowerCase().includes(keyword) ||
+        getModelProviderLabel(card.provider).toLowerCase().includes(keyword);
+
+      return matchedProvider && matchedKeyword;
+    });
+  }, [providerCards, selectedProvider, searchInput]);
+
   return (
     <div className="w-full h-screen flex flex-col page-container-inner-UI">
       <div className="flex-none mb-5">
         <ModelManagementHeader
           activeTab="officialModel"
           shelfOffModel={[]}
-          searchInput={state.searchInput}
-          setSearchInput={filters.handleSearchInputChange}
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
           setShowShelfOnly={() => undefined}
         />
       </div>
@@ -129,9 +198,9 @@ const OfficialModelContent: React.FC = () => {
           <aside className="w-full lg:w-[224px] max-w-[224px] min-w-[180px] flex-shrink-0 rounded-[18px] bg-[#FFFFFF] overflow-y-auto hide-scrollbar shadow-sm">
             <CategoryAside
               tree={[]}
-              providerFilter={state.providerFilter}
-              providerOptions={getVendorOptions()}
-              onProviderChange={filters.handleProviderFilterChange}
+              providerFilter={selectedProvider}
+              providerOptions={getSpecificProviderOptions()}
+              onProviderChange={handleProviderChange}
               showContextLength={false}
               showModelStatus={false}
             />

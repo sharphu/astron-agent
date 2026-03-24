@@ -13,6 +13,7 @@ import sqlparse
 from common.service import get_otlp_metric_service, get_otlp_span_service
 from common.utils.snowfake import get_id
 from fastapi import APIRouter, Depends
+from loguru import logger
 from memory.database.api.schemas.exec_dml_types import ExecDMLInput
 from memory.database.api.v1.common import (
     check_database_exists_by_did,
@@ -280,6 +281,36 @@ def _is_numeric_value(value: Any) -> bool:
     )
 
 
+def _is_boolean_type(column_type: str) -> bool:
+    """Check if column type is boolean (MySQL tinyint(1)/boolean, PostgreSQL bool)."""
+    if not column_type:
+        return False
+    ct = column_type.lower()
+    return (
+        "boolean" in ct
+        or ct == "bool"
+        or ct.startswith("tinyint(1)")
+        or ct == "tinyint"
+    )
+
+
+def _convert_value_if_boolean(
+    value: str,
+    node_id: int,
+    literal_column_map: Dict[int, str],
+    column_types: Dict[str, str],
+) -> Union[str, bool]:
+    """Convert 'true'/'false' string to bool for boolean columns (MySQL compatibility)."""
+    col_key = literal_column_map.get(node_id)
+    if not col_key or not _is_boolean_type(column_types.get(col_key, "")):
+        return value
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False
+    return value
+
+
 def _parameterize_literals(
     parsed: Any,
     literal_column_map: Dict[int, str],
@@ -308,12 +339,16 @@ def _parameterize_literals(
         if not isinstance(value, str):
             continue
 
-        # Convert value to datetime if needed
-        converted_value: Union[str, datetime.datetime] = value
+        # Convert value to datetime or boolean if needed (MySQL compatibility)
+        converted_value: Union[str, datetime.datetime, bool] = value
         if column_types:
             converted_value = _convert_value_if_datetime(
                 value, id(node), literal_column_map, column_types
             )
+            if isinstance(converted_value, str):
+                converted_value = _convert_value_if_boolean(
+                    converted_value, id(node), literal_column_map, column_types
+                )
 
         # Generate unique parameter name and replace literal with placeholder
         param_name = f"param_{len(params_dict)}"
@@ -343,7 +378,8 @@ def rewrite_dml_with_uid_and_limit(
     Returns:
         tuple: (rewritten_sql, insert_ids, params_dict)
     """
-    parsed = parse_one(dml)
+    dialect = get_adapter().get_sqlglot_dialect()
+    parsed = parse_one(dml, dialect=dialect)
     insert_ids: List[int] = []
 
     tables = [table.alias_or_name for table in parsed.find_all(exp.Table)]
@@ -584,6 +620,7 @@ def _validate_comparison_nodes(parsed: Any, uid: str, span_context: Any) -> Any:
                 span_context.add_error_event(
                     f"DML statement contains illegal expression: {node}"
                 )
+                logger.error(f"DML statement contains illegal expression: {node}")
                 return format_response(
                     code=CodeEnum.DMLNotAllowed.code,
                     message=f"DML statement contains illegal expression: {node}",
@@ -630,6 +667,7 @@ def _validate_name_pattern(names: list, name_type: str, span_context: Any) -> An
                 "only letters and underscores are supported"
             )
             span_context.add_error_event(error_msg)
+            logger.error(error_msg)
             return format_response(
                 code=CodeEnum.DMLNotAllowed.code,
                 message=error_msg,
@@ -643,6 +681,7 @@ def _validate_name_pattern(names: list, name_type: str, span_context: Any) -> An
                 "only letters and underscores are supported"
             )
             span_context.add_error_event(error_msg)
+            logger.error(error_msg)
             return format_response(
                 code=CodeEnum.DMLNotAllowed.code,
                 message=error_msg,
@@ -725,8 +764,11 @@ async def _validate_and_prepare_dml(db: Any, dml_input: Any, span_context: Any) 
     }
     span_context.add_info_events(need_check)
     span_context.add_info_event(f"app_id: {app_id}")
+    logger.info(f"app_id: {app_id}")
     span_context.add_info_event(f"database_id: {database_id}")
+    logger.info(f"database_id: {database_id}")
     span_context.add_info_event(f"uid: {uid}")
+    logger.info(f"uid: {uid}")
 
     if space_id:
         _, error_spaceid = await check_space_id_and_get_uid(
@@ -796,7 +838,8 @@ async def _process_dml_statements(
         # Query column type information (if database connection and schema are provided)
         column_types: Optional[Dict[str, str]] = None
         try:
-            parsed = parse_one(statement)
+            dialect = get_adapter().get_sqlglot_dialect()
+            parsed = parse_one(statement, dialect=dialect)
             # Use actual table names (not aliases) for database query
             tables = [table.name for table in parsed.find_all(exp.Table)]
             if tables:
@@ -804,12 +847,14 @@ async def _process_dml_statements(
                 span_context.add_info_event(
                     f"Column types for tables {tables}: {column_types}"
                 )
+                logger.info(f"Column types for tables {tables}: {column_types}")
         except Exception as col_type_error:  # pylint: disable=broad-except
             # If querying column types fails, log error but don't interrupt
             # processing (backward compatibility)
             span_context.add_error_event(
                 f"Failed to get column types: {str(col_type_error)}"
             )
+            logger.error(f"Failed to get column types: {str(col_type_error)}")
             column_types = None
 
         rewrite_dml, insert_ids, params = rewrite_dml_with_uid_and_limit(
@@ -820,8 +865,11 @@ async def _process_dml_statements(
             column_types=column_types,
         )
         span_context.add_info_event(f"rewrite dml sql: {rewrite_dml}")
+        logger.info(f"rewrite dml sql: {rewrite_dml}")
         span_context.add_info_event(f"rewrite dml params: {params}")
+        logger.info(f"rewrite dml params: {params}")
         span_context.add_info_event(f"rewrite dml insert_ids: {insert_ids}")
+        logger.info(f"rewrite dml insert_ids: {insert_ids}")
         rewrite_dmls.append(
             {
                 "rewrite_dml": rewrite_dml,
@@ -944,9 +992,11 @@ async def _exec_dml_sql(
                 exec_result_dicts = to_jsonable(exec_result_dicts)
             except Exception as mapping_error:
                 span_context.add_info_event(f"{str(mapping_error)}")
+                logger.info(f"{str(mapping_error)}")
                 exec_result_dicts = []
 
             span_context.add_info_event(f"exec result: {exec_result_dicts}")
+            logger.info(f"exec result: {exec_result_dicts}")
 
             if exec_result_dicts:
                 final_exec_success_res.extend(exec_result_dicts)
@@ -979,6 +1029,7 @@ async def _set_search_path(
     schema = next((one[0] for one in schema_list if env in one[0]), "")
     if not schema:
         span_context.add_error_event("Corresponding schema not found")
+        logger.error("Corresponding schema not found")
         return None, format_response(
             code=CodeEnum.NoSchemaError.code,
             message=f"Corresponding schema not found: {schema}",
@@ -986,6 +1037,7 @@ async def _set_search_path(
         )
 
     span_context.add_info_event(f"schema: {schema}")
+    logger.info(f"schema: {schema}")
     try:
         await set_search_path_by_schema(db, schema)
         return schema, None
@@ -1005,10 +1057,12 @@ async def _dml_split(
     dml = dml.strip()
     dmls = sqlparse.split(dml)
     span_context.add_info_event(f"Split DML statements: {dmls}")
+    logger.info(f"Split DML statements: {dmls}")
 
     for statement in dmls:
         try:
-            parsed = parse_one(statement)
+            dialect = get_adapter().get_sqlglot_dialect()
+            parsed = parse_one(statement, dialect=dialect)
             tables = {table.name for table in parsed.find_all(exp.Table)}
         except Exception as parse_error:  # pylint: disable=broad-except
             span_context.record_exception(parse_error)
@@ -1030,6 +1084,7 @@ async def _dml_split(
             span_context.add_error_event(
                 f"Table does not exist or no permission: {', '.join(not_found)}"
             )
+            logger.error(f"Table does not exist or no permission: {', '.join(not_found)}")
             return None, format_response(
                 code=CodeEnum.NoAuthorityError.code,
                 message=f"Table does not exist or no permission: "
@@ -1040,6 +1095,7 @@ async def _dml_split(
         allowed_sql = re.compile(r"^\s*(SELECT|INSERT|UPDATE|DELETE)\s+", re.IGNORECASE)
         if not allowed_sql.match(statement):
             span_context.add_error_events({"invalid dml": statement})
+            logger.error(f"invalid dml: {statement}")
             return None, format_response(
                 code=CodeEnum.DMLNotAllowed.code,
                 message="Unsupported SQL type, only "

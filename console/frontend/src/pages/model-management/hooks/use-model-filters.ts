@@ -127,7 +127,7 @@ export const useModelFilters = (): {
 
     if (state.providerFilter) {
       models = models.filter(
-        model => getModelVendorIdentifier(model) === state.providerFilter
+        model => getModelProviderFromInfo(model) === state.providerFilter
       );
     }
 
