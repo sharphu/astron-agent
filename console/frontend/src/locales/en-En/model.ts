@@ -145,7 +145,7 @@ const translation = {
   providerFilter: 'Provider',
   allProviders: 'All Providers',
   providerDeepSeek: 'DeepSeek',
-  providerOpenAI: 'OpenAI Compatible',
+  providerOpenAI: 'OpenAI',
   providerAnthropic: 'Anthropic',
   providerGoogle: 'Google',
   providerMiniMax: 'MiniMax',
