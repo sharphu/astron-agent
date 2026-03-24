@@ -141,7 +141,7 @@ const translation = {
   providerFilter: '供应商筛选',
   allProviders: '全部供应商',
   providerDeepSeek: 'DeepSeek',
-  providerOpenAI: 'OpenAI 兼容',
+  providerOpenAI: 'OpenAI',
   providerAnthropic: 'Anthropic',
   providerGoogle: 'Google',
   providerMiniMax: 'MiniMax',
@@ -150,7 +150,7 @@ const translation = {
   providerMoonshot: '月之暗面',
   providerChatGPT: 'ChatGPT',
   providerDoubao: '豆包',
-  providerHintOpenAI: '使用 OpenAI 兼容接口地址，例如 /v1/chat/completions。',
+  providerHintOpenAI: '使用 OpenAI 接口地址，例如 /v1/chat/completions。',
   providerHintMiniMax:
     '使用 MiniMax 官方接口地址，并填写 MiniMax-Text-01 等模型名称。',
   providerHintZhipu:
