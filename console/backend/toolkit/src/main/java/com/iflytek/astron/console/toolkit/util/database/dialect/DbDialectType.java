@@ -17,6 +17,7 @@ public enum DbDialectType {
             case "postgres":
             case "postgresql":
             case "pg":
+            case "kingbase":
                 return POSTGRES;
             default:
                 throw new IllegalArgumentException("Unsupported DB dialect: " + value);
