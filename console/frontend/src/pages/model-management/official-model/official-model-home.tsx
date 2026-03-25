@@ -276,7 +276,7 @@ const OfficialModelContent: React.FC = () => {
           setCreateModal={() => setSelectedCard(null)}
           initialProvider={selectedCard.provider}
           initialEndpoint={selectedCard.endpoint}
-          lockProvider={true}
+          lockProvider={false}
           hideLocalModel={true}
           showCategoryForm={false}
         />
