@@ -1,16 +1,17 @@
 """
-Google Gemini Chat AI implementation.
+Google Gemini Chat AI implementation using official Google Generative AI SDK.
 
-This module integrates the Gemini GenerateContent streaming API and normalizes
-streaming frames into the OpenAI-like structure already consumed by the workflow
-engine.
+This module integrates with the official Google Generative AI SDK to connect
+with Gemini models.
 """
 
 import json
 from typing import Any, AsyncIterator, Dict, List, Tuple
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-import httpx
+import google.generativeai as genai
+from google.generativeai import GenerativeModel
+from google.generativeai.types import AsyncGenerateContentResponse
+from google.generativeai.types.content_types import Part, Content
 
 from workflow.consts.engine.chat_status import ChatStatus
 from workflow.engine.nodes.entities.llm_response import LLMResponse
@@ -22,195 +23,170 @@ from workflow.infra.providers.llm.chat_ai import ChatAI
 
 
 class GoogleChatAI(ChatAI):
+    """
+    Google Gemini Chat AI implementation using official Google Generative AI SDK.
+
+    This class implements the ChatAI interface to provide integration with
+    Google's Gemini models using their official Python SDK.
+    """
+
     model_config = {"arbitrary_types_allowed": True, "protected_namespaces": ()}
 
     def token_calculation(self, text: str) -> int:
+        """Token calculation is not implemented for Google."""
         raise NotImplementedError
 
     def image_processing(self, image_path: str) -> Any:
+        """Image processing is not implemented for Google."""
         raise NotImplementedError
 
     async def assemble_url(self, span: Span) -> str:
-        model_url = self.model_url
-        if not model_url:
-            raise CustomException(
-                err_code=CodeEnum.OPEN_AI_REQUEST_ERROR,
-                err_msg="Request URL is empty",
-                cause_error="Request URL is empty",
-            )
+        """
+        Assemble URL for Google API calls.
 
-        if ":streamGenerateContent" not in model_url:
-            model_url = model_url.replace(
-                ":generateContent", ":streamGenerateContent"
-            )
+        Returns the configured model URL or a default placeholder if not set.
+        This allows for custom Google-compatible endpoints.
 
-        parsed = urlsplit(model_url)
-        query = dict(parse_qsl(parsed.query, keep_blank_values=True))
-        query["alt"] = "sse"
-        final_url = urlunsplit(
-            (
-                parsed.scheme,
-                parsed.netloc,
-                parsed.path,
-                urlencode(query),
-                parsed.fragment,
-            )
-        )
-        await span.add_info_events_async({"google_base_url": final_url})
-        return final_url
+        Args:
+            span: OpenTelemetry span for tracing
+
+        Returns:
+            Configured API URL or placeholder
+        """
+        # If model_url is provided, use it as the base URL for Google client
+        if self.model_url:
+            await span.add_info_events_async({"google_base_url": self.model_url})
+            return self.model_url
+        else:
+            # For standard Google API, return a placeholder
+            return "google-genai-sdk-placeholder"
 
     def assemble_payload(self, message: list) -> Dict[str, Any]:
+        """
+        Assemble the payload for Google API calls.
+
+        This method transforms the internal message format into the format
+        expected by the Google GenAI SDK. This is primarily for compatibility
+        with the base ChatAI interface, as the SDK handles message conversion internally.
+
+        Args:
+            message: List of message objects with role, content, and content_type
+
+        Returns:
+            Dictionary containing the formatted payload
+        """
+        # This method is not needed when using the SDK directly
+        # The SDK handles message conversion internally
         system_parts: List[str] = []
-        contents: List[Dict[str, Any]] = []
+        converted_messages: List[Dict[str, Any]] = []
 
         for item in message:
             role = item.get("role", "user")
+
+            # Handle system messages separately
             if role == "system":
                 system_parts.append(str(item.get("content", "")))
                 continue
 
             content_type = item.get("content_type", "text")
+
+            # Handle image content
             if content_type == "image":
-                parts = [
-                    {
-                        "inline_data": {
-                            "mime_type": "image/jpeg",
-                            "data": str(item.get("content", "")),
-                        }
-                    }
-                ]
-                target_role = "user"
+                # For image content, we convert to the format expected by Google GenAI
+                converted_messages.append({
+                    "role": "user",
+                    "parts": [
+                        Part.from_data(mime_type="image/jpeg", data=item.get("content", "")),
+                    ]
+                })
             else:
-                parts = [{"text": str(item.get("content", ""))}]
-                target_role = "model" if role == "assistant" else "user"
+                # Handle text content
+                converted_messages.append({
+                    "role": "model" if role == "assistant" else "user",
+                    "parts": [str(item.get("content", ""))]
+                })
 
-            if contents and contents[-1].get("role") == target_role:
-                contents[-1]["parts"].extend(parts)
-            else:
-                contents.append({"role": target_role, "parts": parts})
+        payload: Dict[str, Any] = {
+            "messages": converted_messages,
+            "system_instruction": "\n".join(system_parts) if system_parts else None,
+        }
 
-        payload: Dict[str, Any] = {"contents": contents}
-        generation_config: Dict[str, Any] = {}
-        if self.temperature is not None:
-            generation_config["temperature"] = self.temperature
-        if self.max_tokens is not None:
-            generation_config["maxOutputTokens"] = self.max_tokens
-        if self.top_k is not None:
-            generation_config["topK"] = self.top_k
-        if generation_config:
-            payload["generationConfig"] = generation_config
-        if system_parts:
-            payload["system_instruction"] = {
-                "parts": [{"text": "\n".join(system_parts)}]
-            }
         return payload
 
     def decode_message(self, msg: dict) -> Tuple[str, str, str, Dict[str, Any]]:
+        """
+        Decode a message from the normalized response format.
+
+        This method extracts the status, content, reasoning content, and token usage
+        from the normalized response dictionary.
+
+        Args:
+            msg: Normalized response dictionary
+
+        Returns:
+            Tuple containing (status, content, reasoning_content, token_usage)
+        """
         choice = msg["choices"][0]
         delta = choice.get("delta", {})
         finish_reason = choice.get("finish_reason")
+
+        # Determine status based on finish reason
         status = ""
         if finish_reason in {ChatStatus.FINISH_REASON.value, "STOP", "stop"}:
             status = ChatStatus.FINISH_REASON.value
         elif finish_reason:
             status = str(finish_reason).lower()
+
+        # Extract content fields
         content = delta.get("content", "")
         reasoning_content = delta.get("reasoning_content", "")
         token_usage = msg.get("usage") or {}
+
         return status, content, reasoning_content, token_usage
 
-    def _build_headers(self) -> Dict[str, str]:
-        return {
-            "content-type": "application/json",
-            "x-goog-api-key": self.api_key,
-        }
+    async def _convert_messages_to_genai_format(self, message: list) -> List[Content]:
+        """
+        Convert the internal message format to Google GenAI format.
 
-    def _merge_extra_params(
-        self, payload: Dict[str, Any], extra_params: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        if not extra_params:
-            return payload
+        This helper method transforms messages from the internal representation
+        to the Content format expected by Google's Generative AI SDK.
 
-        generation_config = payload.setdefault("generationConfig", {})
-        direct_map = {
-            "temperature": "temperature",
-            "topP": "topP",
-            "top_p": "topP",
-            "topK": "topK",
-            "top_k": "topK",
-            "maxOutputTokens": "maxOutputTokens",
-            "max_tokens": "maxOutputTokens",
-        }
-        for source_key, target_key in direct_map.items():
-            if source_key in extra_params:
-                generation_config[target_key] = extra_params[source_key]
+        Args:
+            message: List of message objects with role, content, and content_type
 
-        if "stopSequences" in extra_params:
-            generation_config["stopSequences"] = extra_params["stopSequences"]
-        elif "stop" in extra_params:
-            stop_value = extra_params["stop"]
-            generation_config["stopSequences"] = (
-                stop_value if isinstance(stop_value, list) else [stop_value]
-            )
+        Returns:
+            List of Content objects formatted for Google GenAI
+        """
+        contents = []
 
-        for payload_key in ["tools", "toolConfig", "safetySettings", "cachedContent"]:
-            if payload_key in extra_params:
-                payload[payload_key] = extra_params[payload_key]
+        for item in message:
+            role = item.get("role", "user")
+            content_type = item.get("content_type", "text")
 
-        if "generationConfig" in extra_params and isinstance(
-            extra_params["generationConfig"], dict
-        ):
-            generation_config.update(extra_params["generationConfig"])
-
-        return payload
-
-    def _normalize_chunk(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        usage_metadata = payload.get("usageMetadata") or {}
-        usage = {
-            "prompt_tokens": usage_metadata.get("promptTokenCount", 0),
-            "completion_tokens": usage_metadata.get("candidatesTokenCount", 0),
-            "total_tokens": usage_metadata.get("totalTokenCount", 0),
-        }
-
-        prompt_feedback = payload.get("promptFeedback") or {}
-        if prompt_feedback.get("blockReason"):
-            raise CustomException(
-                err_code=CodeEnum.OPEN_AI_REQUEST_ERROR,
-                err_msg=str(prompt_feedback.get("blockReason")),
-                cause_error=json.dumps(prompt_feedback, ensure_ascii=False),
-            )
-
-        candidate = (payload.get("candidates") or [{}])[0]
-        finish_reason = candidate.get("finishReason")
-        normalized_finish = None
-        if finish_reason in {"STOP", "stop"}:
-            normalized_finish = ChatStatus.FINISH_REASON.value
-        elif finish_reason:
-            normalized_finish = str(finish_reason).lower()
-
-        content_parts: List[str] = []
-        reasoning_parts: List[str] = []
-        for part in candidate.get("content", {}).get("parts", []):
-            text = str(part.get("text", ""))
-            if not text:
+            # Skip system messages as they are handled separately
+            if role == "system":
+                # System instructions are handled separately
                 continue
-            if part.get("thought") is True:
-                reasoning_parts.append(text)
-            else:
-                content_parts.append(text)
 
-        return {
-            "choices": [
-                {
-                    "delta": {
-                        "content": "".join(content_parts),
-                        "reasoning_content": "".join(reasoning_parts),
-                    },
-                    "finish_reason": normalized_finish,
-                }
-            ],
-            "usage": usage,
-        }
+            if content_type == "image":
+                # Handle image content
+                image_data = item.get("content", "")
+                if isinstance(image_data, str):
+                    # Assuming it's base64 encoded image data
+                    part = Part.from_data(mime_type="image/jpeg", data=image_data)
+                else:
+                    # Handle other formats if needed
+                    continue
+                contents.append(Content(role="user", parts=[part]))
+            else:
+                # Handle text content
+                text_content = str(item.get("content", ""))
+                contents.append(Content(
+                    role="user" if role != "assistant" else "model",
+                    parts=[text_content]
+                ))
+
+        return contents
 
     async def _recv_messages(
         self,
@@ -220,52 +196,124 @@ class GoogleChatAI(ChatAI):
         span: Span,
         timeout: float | None = None,
     ) -> AsyncIterator[LLMResponse]:
-        payload = self._merge_extra_params(
-            self.assemble_payload(user_message), extra_params or {}
+        """
+        Receive messages using Google Generative AI SDK streaming.
+
+        This method handles the streaming response from the Google GenAI API,
+        processes chunks, and yields LLMResponse objects.
+
+        Args:
+            url: API endpoint URL (used for custom Google-compatible endpoints)
+            user_message: List of user messages to send
+            extra_params: Additional parameters for the API call
+            span: OpenTelemetry span for tracing
+            timeout: Request timeout in seconds
+
+        Yields:
+            LLMResponse objects containing normalized API responses
+        """
+        # Configure the API key and potentially custom client options for Google GenAI
+        # If a custom URL is provided, we use client_options to configure it
+        if url and url != "google-genai-sdk-placeholder":
+            # Use client_options to configure a custom endpoint
+            genai.configure(api_key=self.api_key, client_options={"api_endpoint": url})
+        else:
+            # Standard Google API configuration
+            genai.configure(api_key=self.api_key)
+
+        # Create the generative model instance with potential system instruction
+        model = GenerativeModel(
+            model_name=self.model_name,
+            system_instruction=extra_params.get("system_instruction") if "system_instruction" in extra_params else None
         )
-        last_frame: Dict[str, Any] = {
-            "choices": [{"delta": {"content": "", "reasoning_content": ""}}],
-            "usage": {},
+
+        # Convert messages to the format expected by Google GenAI
+        contents = await self._convert_messages_to_genai_format(user_message)
+
+        # Prepare generation configuration with base parameters
+        generation_config = {
+            "max_output_tokens": self.max_tokens,
+            "temperature": self.temperature,
         }
-        request_timeout = httpx.Timeout(timeout) if timeout else None
 
-        async with httpx.AsyncClient(timeout=request_timeout) as client:
-            async with client.stream(
-                "POST", url, headers=self._build_headers(), json=payload
-            ) as response:
-                response.raise_for_status()
-                data_lines: List[str] = []
+        # Update with any extra parameters
+        if extra_params:
+            for key, value in extra_params.items():
+                if key not in ['system_instruction', 'messages']:  # Skip these as they're handled separately
+                    generation_config[key] = value
 
-                async for line in response.aiter_lines():
-                    if not line:
-                        if not data_lines:
-                            continue
-                        raw_data = "\n".join(data_lines)
-                        data_lines = []
-                        if raw_data == "[DONE]":
-                            break
-                        normalized = self._normalize_chunk(json.loads(raw_data))
-                        last_frame = normalized
-                        await span.add_info_events_async(
-                            {"recv": json.dumps(normalized, ensure_ascii=False)}
-                        )
-                        yield LLMResponse(msg=normalized)
-                        continue
+        # Set up safety settings (default to none for now, but can be customized)
+        safety_settings = None
 
-                    if line.startswith("data:"):
-                        data_lines.append(line.split(":", 1)[1].strip())
+        try:
+            # Create the async stream with specified configuration
+            response: AsyncGenerateContentResponse = await model.generate_content_async(
+                contents,
+                generation_config=generation_config,
+                safety_settings=safety_settings,
+                stream=True
+            )
 
-        if (
-            last_frame["choices"][0].get("finish_reason")
-            != ChatStatus.FINISH_REASON.value
-        ):
-            last_frame["choices"] = [
-                {
-                    "delta": {"content": "", "reasoning_content": ""},
-                    "finish_reason": ChatStatus.FINISH_REASON.value,
+            # Process the streamed response chunks
+            async for chunk in await response.async_iter():
+                # Extract text from the chunk
+                text = chunk.text if hasattr(chunk, 'text') else ''
+
+                # Calculate usage info (this might not be available in streaming chunks)
+                usage = {}
+                if hasattr(chunk, 'usage_metadata'):
+                    usage_metadata = chunk.usage_metadata
+                    usage = {
+                        "prompt_tokens": getattr(usage_metadata, 'prompt_token_count', 0),
+                        "completion_tokens": getattr(usage_metadata, 'candidates_token_count', 0),
+                        "total_tokens": getattr(usage_metadata, 'total_token_count', 0),
+                    }
+
+                # Create normalized response structure similar to OpenAI
+                normalized_response = {
+                    "choices": [
+                        {
+                            "delta": {
+                                "content": text,
+                                "reasoning_content": "",  # Google doesn't typically provide separate reasoning in streams
+                            },
+                            "finish_reason": None,  # Will be set on final chunk
+                        }
+                    ],
+                    "usage": usage,
                 }
-            ]
-            yield LLMResponse(msg=last_frame)
+
+                # Log the received message for tracing
+                await span.add_info_events_async(
+                    {"recv": json.dumps(normalized_response, ensure_ascii=False)}
+                )
+
+                # Yield the response
+                yield LLMResponse(msg=normalized_response)
+
+            # Send final message indicating completion
+            final_response = {
+                "choices": [
+                    {
+                        "delta": {"content": "", "reasoning_content": ""},
+                        "finish_reason": ChatStatus.FINISH_REASON.value,
+                    }
+                ],
+                "usage": usage,  # Final usage statistics
+            }
+
+            await span.add_info_events_async(
+                {"recv": json.dumps(final_response, ensure_ascii=False)}
+            )
+
+            yield LLMResponse(msg=final_response)
+
+        except Exception as e:
+            raise CustomException(
+                err_code=CodeEnum.OPEN_AI_REQUEST_ERROR,
+                err_msg=f"Google Generative AI error: {str(e)}",
+                cause_error=str(e),
+            ) from e
 
     async def achat(
         self,
@@ -277,6 +325,25 @@ class GoogleChatAI(ChatAI):
         search_disable: bool = True,
         event_log_node_trace: NodeLog | None = None,
     ) -> AsyncIterator[LLMResponse]:
+        """
+        Asynchronous chat method that initiates a conversation with Google Gemini.
+
+        This method orchestrates the chat interaction, including setting up spans,
+        logging events, and processing the streamed responses.
+
+        Args:
+            flow_id: Unique identifier for the workflow flow
+            user_message: List of messages from the user
+            span: OpenTelemetry span for tracing
+            extra_params: Additional parameters for the API call
+            timeout: Request timeout in seconds
+            search_disable: Whether to disable search functionality
+            event_log_node_trace: Node logger for event tracing
+
+        Yields:
+            LLMResponse objects containing the API responses
+        """
+        # Set up tracing information
         url = await self.assemble_url(span)
         await span.add_info_events_async({"domain": self.model_name})
         await span.add_info_events_async(
@@ -284,19 +351,22 @@ class GoogleChatAI(ChatAI):
         )
 
         try:
+            # Add configuration data to event log if provided
             if event_log_node_trace:
                 event_log_node_trace.append_config_data(
                     {
                         "model_name": self.model_name,
-                        "base_url": url,
+                        "base_url": url,  # Log the base URL used
                         "message": user_message,
                         "extra_params": extra_params,
                     }
                 )
 
+            # Process the streamed responses
             async for msg in self._recv_messages(
                 url, user_message, extra_params, span, timeout
             ):
+                # Add response to event log if provided
                 if event_log_node_trace:
                     event_log_node_trace.add_info_log(
                         json.dumps(msg.msg, ensure_ascii=False)
@@ -310,4 +380,4 @@ class GoogleChatAI(ChatAI):
                 err_code=CodeEnum.OPEN_AI_REQUEST_ERROR,
                 err_msg=str(e),
                 cause_error=str(e),
-            )
+            ) from e
