@@ -198,16 +198,35 @@ class SparkLLMNode(BaseLLMNode):
                     else None
                 )
             flow_id = callbacks.flow_id if callbacks else ""
-            # Extract multimodal inputs from the inputs
+            # Extract multimodal inputs based on the DSL protocol fileType mapping
+            # Use a mapping from input names to their fileType as defined in the DSL protocol
+
             multimodal_inputs = []
-            for key, value in inputs.items():
-                # Check if the input is a multimodal input
-                if isinstance(value, dict) and 'fileType' in value and 'id' in value:
-                    file_type = value.get('fileType', '')
-                    if file_type in ['image', 'video', 'audio']:
+
+            # Create a mapping from input identifiers to their DSL-defined fileTypes
+            # This maps the input names to their fileType as defined in the DSL protocol
+            input_to_filetype_map = self.input_to_filetype_map
+
+            # Iterate through the runtime inputs
+            for input_name, input_value in inputs.items():
+                # Get the fileType for this input from the DSL protocol mapping
+                filetype = input_to_filetype_map.get(input_name, '')
+
+                # Check if this input is defined as multimodal in the DSL protocol
+                if filetype in ['image', 'audio', 'video']:
+                    # Process this input as a multimodal input
+                    if isinstance(input_value, str):
+                        # If the value is a string, treat it as a URL
                         multimodal_inputs.append({
-                            'type': file_type,
-                            'url': value.get('url', '') or value.get('link', '') or str(value)
+                            'type': filetype,
+                            'url': input_value
+                        })
+                    elif isinstance(input_value, dict):
+                        # If the value is a dictionary, extract the URL or content
+                        url = input_value.get('url') or input_value.get('link') or str(input_value)
+                        multimodal_inputs.append({
+                            'type': filetype,
+                            'url': url
                         })
 
             token_usage, res, think_contents, processed_history = (
