@@ -1217,6 +1217,7 @@ class BaseLLMNode(BaseNode):
         image_url: str = "",
         stream: bool = False,
         event_log_node_trace: NodeLog | None = None,
+        multimodal_inputs: list = [],
     ) -> Tuple[dict, str, str, list]:
         """
         Chat with the LLM and process the response.
@@ -1271,6 +1272,7 @@ class BaseLLMNode(BaseNode):
                     else self._private_config.timeout
                 ),
                 search_disable=self.searchDisable,
+                multimodal_inputs=multimodal_inputs,
             ):
                 msg = llm_response.msg
                 status, content, reasoning_content, token_usage = (
