@@ -1053,6 +1053,7 @@ class BaseLLMNode(BaseNode):
     source: str = Field(default=ModelProviderEnum.XINGHUO.value)
     searchDisable: bool = Field(default=True)
     extraParams: dict = Field(default_factory=dict)
+    input_to_filetype_map: dict = Field(default_factory=dict)
 
     def _get_chat_ai(self, uid: str = "") -> ChatAI:
         """
@@ -1203,6 +1204,27 @@ class BaseLLMNode(BaseNode):
         ]
         user_message.extend(filter(None, [image_msg, system_msg, *history, user_msg]))
         return user_message
+
+    def _build_input_to_filetype_map(self, node_protocol: list = None) -> dict:
+        """
+        Build the mapping from input names to their fileTypes based on DSL protocol.
+
+        :param node_protocol: DSL protocol definition for this node
+        :return: Dictionary mapping input names to their fileTypes
+        """
+        input_to_filetype_map = {}
+
+        if node_protocol and isinstance(node_protocol, list):
+            for item in node_protocol:
+                if isinstance(item, dict):
+                    file_type = item.get('fileType', '')
+                    input_name = item.get('name', '')
+
+                    # Only add to map if both file_type and input_name exist
+                    if file_type and input_name:
+                        input_to_filetype_map[input_name] = file_type
+
+        return input_to_filetype_map
 
     async def _chat_with_llm(
         self,
