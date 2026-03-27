@@ -59,6 +59,8 @@
 | MYSQL_HOST | 使用默认 | string | MySQL 数据库主机地址 | mysql |
 | MYSQL_PORT | 使用默认 | int | MySQL 数据库端口号 | 3306 |
 | MYSQL_URL | 使用默认 | string | MySQL 数据库 JDBC 连接 URL | jdbc:mysql://mysql:3306/astron_console |
+| DB_TYPE | 可选 | string | Console Backend 数据库类型（mysql/kingbase/postgresql） | mysql |
+| PAGEHELPER_DIALECT | 可选 | string | Console Backend PageHelper 方言（mysql/postgresql） | mysql |
 | REDIS_PASSWORD | 可选 | string | Redis 密码(为空表示无密码) | (留空) |
 | REDIS_DATABASE | 使用默认 | int | Redis 数据库索引(0-15) | 0 |
 | REDIS_IS_CLUSTER | 使用默认 | bool | Redis 是否为集群模式 | false |
@@ -139,7 +141,7 @@
 | DATABASE_DB_TYPE | 必填 | string | 数据库类型 | mysql |
 | DATABASE_USERNAME | 必填 | string | 数据库用户名(默认从 MYSQL_USER 获取) | ${MYSQL_USER:-root} |
 | DATABASE_PASSWORD | 必填 | string | 数据库密码(默认从 MYSQL_PASSWORD 获取) | ${MYSQL_PASSWORD:-root123} |
-| DATABASE_URL | 必填 | string | 数据库连接 URL | (mysql:3306)/tenant |
+| DATABASE_URL | 必填 | string | 数据库连接 URL。MySQL 格式: `(host:port)/dbname`；KingBase/PostgreSQL 格式: `host=xxx port=xxx dbname=xxx sslmode=disable` | (mysql:3306)/tenant |
 | DATABASE_MAX_OPEN_CONNS | 必填 | int | 数据库最大连接数 | 5 |
 | DATABASE_MAX_IDLE_CONNS | 必填 | int | 数据库最大空闲连接数 | 5 |
 | LOG_PATH | 必填 | string | 日志文件路径 | log.txt |
@@ -169,6 +171,12 @@
 | 变量名 | 配置类型 | 类型 | 用途说明 | 示例值 |
 |--------|----------|------|----------|--------|
 | LINK_MYSQL_DB | 必填 | string | Link 模块使用的 MySQL 数据库名称 | spark-link |
+| LINK_DB_TYPE | 可选 | string | Link 模块数据库类型（mysql/kingbase/postgresql） | mysql |
+| LINK_KINGBASE_HOST | 可选 | string | Link 模块 Kingbase 主机 | postgres |
+| LINK_KINGBASE_PORT | 可选 | int | Link 模块 Kingbase 端口 | 5432 |
+| LINK_KINGBASE_USER | 可选 | string | Link 模块 Kingbase 用户名 | spark |
+| LINK_KINGBASE_PASSWORD | 可选 | string | Link 模块 Kingbase 密码 | spark123 |
+| LINK_KINGBASE_DB | 可选 | string | Link 模块 Kingbase 数据库名 | spark-link |
 
 ---
 
@@ -223,6 +231,12 @@
 | 变量名 | 配置类型 | 类型 | 用途说明 | 示例值 |
 |--------|----------|------|----------|--------|
 | WORKFLOW_MYSQL_DB | 必填 | string | Workflow 模块使用的 MySQL 数据库名称 | workflow |
+| WORKFLOW_DB_TYPE | 可选 | string | Workflow 模块数据库类型（mysql/kingbase/postgresql） | mysql |
+| WORKFLOW_KINGBASE_HOST | 可选 | string | Workflow 模块 Kingbase 主机 | postgres |
+| WORKFLOW_KINGBASE_PORT | 可选 | int | Workflow 模块 Kingbase 端口 | 5432 |
+| WORKFLOW_KINGBASE_USER | 可选 | string | Workflow 模块 Kingbase 用户名 | spark |
+| WORKFLOW_KINGBASE_PASSWORD | 可选 | string | Workflow 模块 Kingbase 密码 | spark123 |
+| WORKFLOW_KINGBASE_DB | 可选 | string | Workflow 模块 Kingbase 数据库名称 | workflow |
 | WORKFLOW_KAFKA_TOPIC | 必填 | string | Workflow 使用的 Kafka 主题名称 | spark-agent-builder |
 | RUNTIME_ENV | 必填 | string | 运行环境(dev/test/prod) | dev |
 

@@ -287,17 +287,24 @@ class DatabaseConfig(BaseSettings):
     """
     Database connection configuration.
 
-    Loads MySQL connection parameters from environment variables
-    (MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB).
+    Loads database connection parameters from environment variables.
     """
 
     model_config = {"env_prefix": "", "case_sensitive": False}
+
+    db_type: str = Field(default="mysql", alias="DB_TYPE")
 
     host: str = Field(default="", alias="MYSQL_HOST")
     port: str = Field(default="", alias="MYSQL_PORT")
     user: str = Field(default="", alias="MYSQL_USER")
     password: str = Field(default="", alias="MYSQL_PASSWORD")
     database: str = Field(default="", alias="MYSQL_DB")
+
+    kingbase_host: str = Field(default="", alias="KINGBASE_HOST")
+    kingbase_port: str = Field(default="", alias="KINGBASE_PORT")
+    kingbase_user: str = Field(default="", alias="KINGBASE_USER")
+    kingbase_password: str = Field(default="", alias="KINGBASE_PASSWORD")
+    kingbase_database: str = Field(default="", alias="KINGBASE_DB")
 
 
 class KnowledgeNodeLLMConfig(BaseSettings):

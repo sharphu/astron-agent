@@ -15,7 +15,7 @@
         <result column="meta" property="meta"/>
     </resultMap>
 
-    <select id="selectByType" resultMap="BaseResultMap">
+    <select id="selectByType" resultMap="BaseResultMap" databaseId="mysql">
         SELECT *
         FROM notifications
         WHERE type = #{type}
@@ -23,8 +23,16 @@
         ORDER BY created_at DESC
         LIMIT #{offset}, #{limit}
     </select>
+    <select id="selectByType" resultMap="BaseResultMap" databaseId="postgresql">
+        SELECT *
+        FROM notifications
+        WHERE type = #{type}
+          AND (expire_at IS NULL OR expire_at > NOW())
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
 
-    <select id="selectBroadcastMessages" resultMap="BaseResultMap">
+    <select id="selectBroadcastMessages" resultMap="BaseResultMap" databaseId="mysql">
         SELECT *
         FROM notifications
         WHERE type = 'broadcast'
@@ -32,6 +40,15 @@
           AND (expire_at IS NULL OR expire_at > NOW())
         ORDER BY created_at DESC
         LIMIT #{offset}, #{limit}
+    </select>
+    <select id="selectBroadcastMessages" resultMap="BaseResultMap" databaseId="postgresql">
+        SELECT *
+        FROM notifications
+        WHERE type = 'broadcast'
+          AND created_at BETWEEN #{startTime} AND #{endTime}
+          AND (expire_at IS NULL OR expire_at > NOW())
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="countBroadcastMessagesAfter" resultType="long">

@@ -229,7 +229,9 @@ func TestConfLoader_InterfaceDocumentation(t *testing.T) {
 				cfg.DataBase.DBType = "test-db"
 				cfg.DataBase.UserName = "test-user"
 				cfg.DataBase.Password = "test-pass"
-				cfg.DataBase.Url = "test-url"
+				cfg.DataBase.Host = "test-host"
+				cfg.DataBase.Port = 5432
+				cfg.DataBase.DBName = "test-dbname"
 				cfg.Log.LogFile = "test.log"
 				return nil
 			},

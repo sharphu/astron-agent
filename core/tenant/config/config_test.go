@@ -27,14 +27,18 @@ func TestConfig_String(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					DBType:       "mysql",
 					UserName:     "admin",
 					Password:     "secret",
-					Url:          "localhost:3306",
+					Host:         "localhost",
+					Port:         3306,
+					DBName:       "tenant",
 					MaxOpenConns: 10,
 					MaxIdleConns: 5,
 				},
@@ -91,14 +95,18 @@ func TestConfig_Validate(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					DBType:   "mysql",
 					UserName: "admin",
 					Password: "secret",
-					Url:      "localhost:3306",
+					Host:     "localhost",
+					Port:     3306,
+					DBName:   "tenant",
 				},
 				Log: struct {
 					LogFile string `toml:"path"`
@@ -140,7 +148,9 @@ func TestConfig_Validate(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
@@ -163,7 +173,9 @@ func TestConfig_Validate(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
@@ -175,7 +187,7 @@ func TestConfig_Validate(t *testing.T) {
 			errMsg:  "database password is required",
 		},
 		{
-			name: "missing database url",
+			name:    "missing mysql host",
 			config: &Config{
 				Server: struct {
 					Port     int    `toml:"port"`
@@ -187,7 +199,9 @@ func TestConfig_Validate(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
@@ -197,7 +211,7 @@ func TestConfig_Validate(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			errMsg:  "database url is required",
+			errMsg:  "database host is required",
 		},
 		{
 			name: "missing log file",
@@ -212,14 +226,18 @@ func TestConfig_Validate(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					DBType:   "mysql",
 					UserName: "admin",
 					Password: "secret",
-					Url:      "localhost:3306",
+					Host:     "localhost",
+					Port:     3306,
+					DBName:   "tenant",
 				},
 			},
 			wantErr: true,
@@ -262,7 +280,7 @@ func createValidatorForConfigWithEnvOverride(t *testing.T) func(t *testing.T, cf
 func createValidatorForEnvOnlyConfig(t *testing.T) func(t *testing.T, cfg *Config) {
 	return func(t *testing.T, cfg *Config) {
 		checkLoadConfigField(t, "Server.Port", cfg.Server.Port, 8080)
-		checkLoadConfigField(t, "DataBase.DBType", cfg.DataBase.DBType, "postgresql")
+		checkLoadConfigField(t, "DataBase.DBType", cfg.DataBase.DBType, "mysql")
 		checkLoadConfigField(t, "DataBase.MaxOpenConns", cfg.DataBase.MaxOpenConns, 20)
 	}
 }
@@ -308,7 +326,9 @@ location = "us-east"
 dbType = "mysql"
 username = "testuser"
 password = "testpass"
-url = "localhost:3306/testdb"
+host = "localhost"
+port = 3306
+dbname = "testdb"
 maxOpenConns = 10
 maxIdleConns = 5
 
@@ -341,10 +361,12 @@ dbType = "mysql"
 			envVars: map[string]string{
 				"SERVICE_PORT":            "8080",
 				"SERVICE_LOCATION":        "us-west",
-				"DATABASE_DB_TYPE":        "postgresql",
+				"DATABASE_DB_TYPE":        "mysql",
 				"DATABASE_USERNAME":       "envuser",
 				"DATABASE_PASSWORD":       "envpass",
-				"DATABASE_URL":            "env.example.com:5432/envdb",
+				"DATABASE_HOST":           "env.example.com",
+				"DATABASE_PORT":           "3306",
+				"DATABASE_DBNAME":        "envdb",
 				"DATABASE_MAX_OPEN_CONNS": "20",
 				"DATABASE_MAX_IDLE_CONNS": "10",
 				"LOG_PATH":                "/env/log/path.log",
@@ -396,7 +418,9 @@ func TestLoadConfig_FileNotFound(t *testing.T) {
 		"DATABASE_DB_TYPE":  "mysql",
 		"DATABASE_USERNAME": "user",
 		"DATABASE_PASSWORD": "pass",
-		"DATABASE_URL":      "localhost:3306",
+		"DATABASE_HOST":     "localhost",
+		"DATABASE_PORT":     "3306",
+		"DATABASE_DBNAME":  "tenant",
 		"LOG_PATH":          "/tmp/test.log",
 	}
 

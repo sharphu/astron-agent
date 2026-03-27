@@ -18,7 +18,7 @@
     <!-- Base query conditions for bot queries -->
     <sql id="base_query_conditions">
         FROM
-        `chat_bot_base` a
+        chat_bot_base a
         LEFT JOIN chat_bot_market b ON a.id = b.bot_id
         WHERE
         a.is_delete = 0

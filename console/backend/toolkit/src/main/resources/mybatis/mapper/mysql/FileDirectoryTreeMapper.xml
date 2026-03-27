@@ -83,7 +83,7 @@
                 <when test="safeOrderBy != null and safeOrderBy == 'create_time asc'">, d.create_time asc </when>
             </choose>
         </if>
-        <if test="limit != null"> LIMIT <if test="start != null">#{start},</if>#{limit} </if>
+        <if test="limit != null"> LIMIT #{limit} <if test="start != null"> OFFSET #{start}</if> </if>
     </select>
 
     <select id="getModelCountLinkFileInfoV2" parameterType="hashmap" resultType="int">
@@ -108,7 +108,7 @@
             and app_id = #{appId}
         </if>
         <if test="appId != null and appId != ''">
-            and INSTR(name, #{query})
+            and POSITION(#{query} IN name) > 0
         </if>
     </select>
 
@@ -135,7 +135,7 @@
             and d.is_file = #{isFile}
         </if>
         <if test="fileName != null and fileName != ''">
-            and INSTR(d.name, #{fileName})
+            and POSITION(#{fileName} IN d.name) > 0
         </if>
         <if test="isRepoPage == 0 ">
             and f.status = 5

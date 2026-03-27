@@ -57,9 +57,13 @@
     </select>
 
     <!-- Delete reasoning records older than specified days -->
-    <delete id="deleteByCreateTimeBefore">
+    <delete id="deleteByCreateTimeBefore" databaseId="mysql">
         DELETE FROM chat_reason_records
         WHERE create_time &lt; DATE_SUB(NOW(), INTERVAL #{days} DAY)
+    </delete>
+    <delete id="deleteByCreateTimeBefore" databaseId="postgresql">
+        DELETE FROM chat_reason_records
+        WHERE create_time &lt; NOW() - CAST(#{days} || ' days' AS INTERVAL)
     </delete>
 
 </mapper>

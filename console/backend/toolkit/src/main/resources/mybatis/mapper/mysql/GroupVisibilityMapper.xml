@@ -5,7 +5,7 @@
 
     <select id="getRepoVisibilityList" resultType="com.iflytek.astron.console.toolkit.entity.table.group.GroupVisibility">
         select gv.* from group_visibility gv left join repo r on gv.relation_id = r.id
-        where gv.`type` = 1 and r.visibility = 1 and
+        where gv.type = 1 and r.visibility = 1 and
         <if test="spaceId != null">
             gv.space_id = #{spaceId}
         </if>
@@ -19,7 +19,7 @@
     </select>
     <select id="getToolVisibilityList" resultType="com.iflytek.astron.console.toolkit.entity.table.group.GroupVisibility">
         select gv.* from group_visibility gv left join tool_box tb on gv.relation_id = tb.id
-        where gv.`type` = 2 and tb.visibility = 1 and gv.user_id = #{uid}
+        where gv.type = 2 and tb.visibility = 1 and gv.user_id = #{uid}
     </select>
     <select id="getSquareToolVisibilityList" resultType="com.iflytek.astron.console.toolkit.entity.table.group.GroupVisibility">
         select
@@ -29,7 +29,7 @@
         left join tool_box tb on
         gv.relation_id = tb.id
         <where>
-            gv.`type` = 2
+            gv.type = 2
             and tb.visibility = 1
             and gv.user_id =
             #{uid} and tb.is_public = 1;

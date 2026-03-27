@@ -3,6 +3,7 @@ module tenant
 go 1.23
 
 require (
+	gitea.com/kingbase/gokb v0.0.0-20201021123113-29bd62a876c3
 	github.com/BurntSushi/toml v1.5.0
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-sql-driver/mysql v1.9.3

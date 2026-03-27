@@ -1,6 +1,8 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Config struct {
 	Server struct {
@@ -10,9 +12,11 @@ type Config struct {
 
 	DataBase struct {
 		DBType       string `toml:"dbType"`
+		Host         string `toml:"host"`
+		Port         int    `toml:"port"`
 		UserName     string `toml:"username"`
 		Password     string `toml:"password"`
-		Url          string `toml:"url"`
+		DBName       string `toml:"dbname"`
 		MaxOpenConns int    `toml:"maxOpenConns"`
 		MaxIdleConns int    `toml:"maxIdleConns"`
 	} `toml:"database"`
@@ -33,15 +37,22 @@ func (c *Config) Validate() error {
 	if c.DataBase.DBType == "" {
 		return fmt.Errorf("database type is required")
 	}
+	if c.DataBase.Host == "" {
+        return fmt.Errorf("database host is required")
+    }
+    if c.DataBase.Port == 0 {
+        return fmt.Errorf("database port is required")
+    }
 	if c.DataBase.UserName == "" {
 		return fmt.Errorf("database username is required")
 	}
 	if c.DataBase.Password == "" {
 		return fmt.Errorf("database password is required")
 	}
-	if c.DataBase.Url == "" {
-		return fmt.Errorf("database url is required")
-	}
+    if c.DataBase.DBName == "" {
+        return fmt.Errorf("database dbname is required")
+    }
+
 	if c.Log.LogFile == "" {
 		return fmt.Errorf("log file is required")
 	}

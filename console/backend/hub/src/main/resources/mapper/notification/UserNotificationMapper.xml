@@ -48,7 +48,7 @@
         WHERE un.receiver_uid = #{receiverUid}
           AND (n.expire_at IS NULL OR n.expire_at > NOW())
         ORDER BY un.received_at DESC
-        LIMIT #{offset}, #{limit}
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="selectUserUnreadNotificationsWithDetails" resultMap="NotificationDtoResultMap">
@@ -72,7 +72,7 @@
           AND un.is_read = false
           AND (n.expire_at IS NULL OR n.expire_at > NOW())
         ORDER BY un.received_at DESC
-        LIMIT #{offset}, #{limit}
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="selectUnreadByUid" resultMap="BaseResultMap">
@@ -83,7 +83,7 @@
           AND un.is_read = false
           AND (n.expire_at IS NULL OR n.expire_at > NOW())
         ORDER BY un.received_at DESC
-        LIMIT #{offset}, #{limit}
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="selectByUid" resultMap="BaseResultMap">
@@ -93,7 +93,7 @@
         WHERE un.receiver_uid = #{receiverUid}
           AND (n.expire_at IS NULL OR n.expire_at > NOW())
         ORDER BY un.received_at DESC
-        LIMIT #{offset}, #{limit}
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="countUnreadByUid" resultType="int">

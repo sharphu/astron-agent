@@ -20,12 +20,20 @@
         </if>
     </select>
 
-    <insert id="batchInsert">
+    <insert id="batchInsert" databaseId="mysql">
         INSERT IGNORE INTO user_broadcast_read (receiver_uid, notification_id, read_at)
         VALUES
         <foreach collection="readRecords" item="item" separator=",">
             (#{item.receiverUid}, #{item.notificationId}, #{item.readAt})
         </foreach>
+    </insert>
+    <insert id="batchInsert" databaseId="postgresql">
+        INSERT INTO user_broadcast_read (receiver_uid, notification_id, read_at)
+        VALUES
+        <foreach collection="readRecords" item="item" separator=",">
+            (#{item.receiverUid}, #{item.notificationId}, #{item.readAt})
+        </foreach>
+        ON CONFLICT DO NOTHING
     </insert>
 
     <select id="checkIfRead" resultType="boolean">

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"strings"
 	"testing"
 
 	"tenant/config"
@@ -32,7 +33,9 @@ func TestNewDatabase(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
@@ -49,15 +52,17 @@ func TestNewDatabase(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
-					DBType: "postgresql",
+					DBType: "sqlite",
 				},
 			},
 			wantErr:     true,
-			expectedErr: "unsupported dbType: postgresql",
+			expectedErr: "unsupported dbType: sqlite",
 		},
 		{
 			name: "mysql with empty username should return error",
@@ -66,14 +71,15 @@ func TestNewDatabase(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					DBType:   "mysql",
 					UserName: "",
 					Password: "password",
-					Url:      "(localhost:3306)/test",
 				},
 			},
 			wantErr:     true,
@@ -86,38 +92,19 @@ func TestNewDatabase(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					DBType:   "mysql",
 					UserName: "user",
 					Password: "",
-					Url:      "(localhost:3306)/test",
 				},
 			},
 			wantErr:     true,
 			expectedErr: "mysql password is empty",
-		},
-		{
-			name: "mysql with empty url should return error",
-			config: &config.Config{
-				DataBase: struct {
-					DBType       string `toml:"dbType"`
-					UserName     string `toml:"username"`
-					Password     string `toml:"password"`
-					Url          string `toml:"url"`
-					MaxOpenConns int    `toml:"maxOpenConns"`
-					MaxIdleConns int    `toml:"maxIdleConns"`
-				}{
-					DBType:   "mysql",
-					UserName: "user",
-					Password: "password",
-					Url:      "",
-				},
-			},
-			wantErr:     true,
-			expectedErr: "mysql url is empty",
 		},
 		{
 			name: "mysql with invalid connection string should return error",
@@ -126,14 +113,18 @@ func TestNewDatabase(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					DBType:       "mysql",
 					UserName:     "user",
 					Password:     "password",
-					Url:          "(invalidhost:99999)/nonexistentdb",
+					Host:         "invalidhost",
+					Port:         99999,
+					DBName:       "nonexistentdb",
 					MaxOpenConns: 10,
 					MaxIdleConns: 5,
 				},
@@ -184,13 +175,14 @@ func TestDatabase_buildMysql(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					UserName: "",
 					Password: "password",
-					Url:      "(localhost:3306)/test",
 				},
 			},
 			wantErr:     true,
@@ -203,36 +195,18 @@ func TestDatabase_buildMysql(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					UserName: "user",
 					Password: "",
-					Url:      "(localhost:3306)/test",
 				},
 			},
 			wantErr:     true,
 			expectedErr: "mysql password is empty",
-		},
-		{
-			name: "empty url should return error",
-			config: &config.Config{
-				DataBase: struct {
-					DBType       string `toml:"dbType"`
-					UserName     string `toml:"username"`
-					Password     string `toml:"password"`
-					Url          string `toml:"url"`
-					MaxOpenConns int    `toml:"maxOpenConns"`
-					MaxIdleConns int    `toml:"maxIdleConns"`
-				}{
-					UserName: "user",
-					Password: "password",
-					Url:      "",
-				},
-			},
-			wantErr:     true,
-			expectedErr: "mysql url is empty",
 		},
 		{
 			name: "invalid connection should return error",
@@ -241,13 +215,17 @@ func TestDatabase_buildMysql(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
-					UserName:     "user",
-					Password:     "password",
-					Url:          "(invalidhost:99999)/nonexistentdb",
+					UserName: "user",
+					Password: "password",
+					Host:      "invalidhost",
+					Port:      99999,
+					DBName:    "nonexistentdb",
 					MaxOpenConns: 10,
 					MaxIdleConns: 5,
 				},
@@ -331,38 +309,22 @@ func TestDatabase_ConfigValidation(t *testing.T) {
 					DBType       string `toml:"dbType"`
 					UserName     string `toml:"username"`
 					Password     string `toml:"password"`
-					Url          string `toml:"url"`
+					Host         string `toml:"host"`
+					Port         int    `toml:"port"`
+					DBName       string `toml:"dbname"`
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
 					DBType:   "mysql",
 					UserName: "user@domain.com",
 					Password: "password!@#$%",
-					Url:      "(localhost:3306)/test?charset=utf8",
+					Host:      "localhost",
+					Port:      3306,
+					DBName:    "test",
 				},
 			},
 			field: "username",
 			value: "user@domain.com",
-		},
-		{
-			name: "complex url with parameters",
-			config: &config.Config{
-				DataBase: struct {
-					DBType       string `toml:"dbType"`
-					UserName     string `toml:"username"`
-					Password     string `toml:"password"`
-					Url          string `toml:"url"`
-					MaxOpenConns int    `toml:"maxOpenConns"`
-					MaxIdleConns int    `toml:"maxIdleConns"`
-				}{
-					DBType:   "mysql",
-					UserName: "user",
-					Password: "password",
-					Url:      "(localhost:3306)/testdb?charset=utf8&parseTime=true",
-				},
-			},
-			field: "url",
-			value: "(localhost:3306)/testdb?charset=utf8&parseTime=true",
 		},
 	}
 
@@ -373,10 +335,6 @@ func TestDatabase_ConfigValidation(t *testing.T) {
 			case "username":
 				if tt.config.DataBase.UserName != tt.value {
 					t.Errorf("Expected username '%s', got '%s'", tt.value, tt.config.DataBase.UserName)
-				}
-			case "url":
-				if tt.config.DataBase.Url != tt.value {
-					t.Errorf("Expected url '%s', got '%s'", tt.value, tt.config.DataBase.Url)
 				}
 			}
 
@@ -397,14 +355,18 @@ func TestDatabase_ConnectionPoolSettings(t *testing.T) {
 			DBType       string `toml:"dbType"`
 			UserName     string `toml:"username"`
 			Password     string `toml:"password"`
-			Url          string `toml:"url"`
+			Host         string `toml:"host"`
+			Port         int    `toml:"port"`
+			DBName       string `toml:"dbname"`
 			MaxOpenConns int    `toml:"maxOpenConns"`
 			MaxIdleConns int    `toml:"maxIdleConns"`
 		}{
 			DBType:       "mysql",
 			UserName:     "testuser",
 			Password:     "testpass",
-			Url:          "(testhost:3306)/testdb",
+			Host:         "testhost",
+			Port:         3306,
+			DBName:       "testdb",
 			MaxOpenConns: 100,
 			MaxIdleConns: 50,
 		},
@@ -449,4 +411,20 @@ func TestDatabase_IntegrationReadiness(t *testing.T) {
 			db.GetMysql()
 		}
 	})
+}
+
+func TestRewritePlaceholders_Kingbase(t *testing.T) {
+	db := &Database{dbType: KINGBASE}
+	got := db.RewritePlaceholders("select * from t where a=? and b=?")
+	want := "select * from t where a=$1 and b=$2"
+	if got != want {
+		t.Fatalf("unexpected rewrite result: got=%q want=%q", got, want)
+	}
+}
+
+func assertContains(t *testing.T, s string, substr string) {
+	t.Helper()
+	if !strings.Contains(s, substr) {
+		t.Fatalf("expected %q to contain %q", s, substr)
+	}
 }
