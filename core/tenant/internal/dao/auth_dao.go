@@ -41,7 +41,7 @@ func NewAuthDao(db *database.Database) (*AuthDao, error) {
 }
 
 func (dao *AuthDao) BeginTx() (*sql.Tx, error) {
-	return dao.db.GetMysql().Begin()
+	return dao.db.GetDB().Begin()
 }
 
 func (dao *AuthDao) Insert(data *models.Auth, tx *sql.Tx) (int64, error) {
@@ -49,8 +49,9 @@ func (dao *AuthDao) Insert(data *models.Auth, tx *sql.Tx) (int64, error) {
 		return 0, fmt.Errorf("insert auth data,data must not been nil")
 	}
 	log.Printf("insert auth sql is %s", dao.insertSql)
+	insertSQL := adaptSQLForDB(dao.db, dao.insertSql)
 	if tx == nil {
-		result, err := dao.db.GetMysql().Exec(dao.insertSql, //
+		result, err := dao.db.GetDB().Exec(insertSQL, //
 			data.AppId, data.ApiKey, data.ApiSecret, data.Source, data.IsDelete,
 			data.CreateTime, data.UpdateTime, data.Extend)
 		if err != nil {
@@ -59,7 +60,7 @@ func (dao *AuthDao) Insert(data *models.Auth, tx *sql.Tx) (int64, error) {
 		}
 		return result.RowsAffected()
 	}
-	result, err := tx.Exec(dao.insertSql, //
+	result, err := tx.Exec(insertSQL, //
 		data.AppId, data.ApiKey, data.ApiSecret, data.Source, data.IsDelete,
 		data.CreateTime, data.UpdateTime, data.Extend)
 	if err != nil {
@@ -76,8 +77,9 @@ func (dao *AuthDao) Update(querySql []SqlOption, tx *sql.Tx, setSql ...SqlOption
 		return 0, err
 	}
 	log.Printf("update auth sql is %s", finalSql)
+	finalSql = adaptSQLForDB(dao.db, finalSql)
 	if tx == nil {
-		result, err := dao.db.GetMysql().Exec(finalSql, params...)
+		result, err := dao.db.GetDB().Exec(finalSql, params...)
 		if err != nil {
 			log.Printf("update auth error: %v", err)
 			return 0, err
@@ -101,8 +103,9 @@ func (dao *AuthDao) Delete(tx *sql.Tx, querySql ...SqlOption) (int64, error) {
 		return 0, err
 	}
 	log.Printf("delete auth sql is %s", finalSql)
+	finalSql = adaptSQLForDB(dao.db, finalSql)
 	if tx == nil {
-		result, err := dao.db.GetMysql().Exec(finalSql, params...)
+		result, err := dao.db.GetDB().Exec(finalSql, params...)
 		if err != nil {
 			log.Printf("delete auth error: %v", err)
 			return 0, err
@@ -119,8 +122,9 @@ func (dao *AuthDao) Delete(tx *sql.Tx, querySql ...SqlOption) (int64, error) {
 
 func (dao *AuthDao) Select(options ...SqlOption) ([]*models.Auth, error) {
 	finalSql, params := buildQuery(dao.selectSql, options...)
+	finalSql = adaptSQLForDB(dao.db, finalSql)
 	log.Printf("select auth sql is %s,param is %v", finalSql, params)
-	rows, err := dao.db.GetMysql().Query(finalSql, params...)
+	rows, err := dao.db.GetDB().Query(finalSql, params...)
 	if err != nil {
 		log.Printf("select auth error: %v", err)
 		return nil, err
@@ -151,9 +155,10 @@ func (dao *AuthDao) Count(isLock bool, tx *sql.Tx, options ...SqlOption) (int64,
 	if isLock {
 		finalSql = finalSql + " for update"
 	}
+	finalSql = adaptSQLForDB(dao.db, finalSql)
 	log.Printf("count auth sql is %s,param is %v", finalSql, params)
 	if tx == nil {
-		rows, err := dao.db.GetMysql().Query(finalSql, params...)
+		rows, err := dao.db.GetDB().Query(finalSql, params...)
 		if err != nil {
 			log.Printf("count auth error: %v", err)
 			return 0, err

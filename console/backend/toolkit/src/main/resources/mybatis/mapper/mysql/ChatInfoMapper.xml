@@ -72,7 +72,7 @@
         </where>
         order by create_time desc
     </select>
-    <select id="selectWorkflowUseCount" resultType="com.iflytek.astron.console.toolkit.entity.dto.ToolUseDto">
+    <select id="selectWorkflowUseCount" resultType="com.iflytek.astron.console.toolkit.entity.dto.ToolUseDto" databaseId="mysql">
         SELECT
         JSON_UNQUOTE(JSON_EXTRACT(ni.config, '$.pluginId')) AS toolId,
         COUNT(*) AS useCount
@@ -95,7 +95,30 @@
         GROUP BY
         JSON_UNQUOTE(JSON_EXTRACT(ni.config, '$.pluginId'));
     </select>
-    <select id="selectBotUseCount" resultType="com.iflytek.astron.console.toolkit.entity.dto.ToolUseDto">
+    <select id="selectWorkflowUseCount" resultType="com.iflytek.astron.console.toolkit.entity.dto.ToolUseDto" databaseId="postgresql">
+        SELECT
+        ni.config::jsonb ->> 'pluginId' AS toolId,
+        COUNT(*) AS useCount
+        FROM
+        node_info ni
+        JOIN
+        chat_info ci
+        ON
+        ni.sid = ci.sid
+        <where>
+            and ni.node_id LIKE 'plugin%'
+            AND ni.sub = 'workflow'
+            <if test="toolIds != null and toolIds.size() > 0">
+                AND ni.config::jsonb ->> 'pluginId' IN
+                <foreach collection="toolIds" item="toolId" open="(" separator="," close=")">
+                    #{toolId}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY
+        ni.config::jsonb ->> 'pluginId'
+    </select>
+    <select id="selectBotUseCount" resultType="com.iflytek.astron.console.toolkit.entity.dto.ToolUseDto" databaseId="mysql">
         SELECT flow_id as toolId,COUNT(*) AS useCount
         FROM chat_info
         <where>
@@ -104,6 +127,20 @@
                 and
                 <foreach collection="toolIds" item="toolId" open="(" separator="or" close=")">
                     instr(flow_id, #{toolId})
+                </foreach>
+            </if>
+        </where>
+        group by flow_id
+    </select>
+    <select id="selectBotUseCount" resultType="com.iflytek.astron.console.toolkit.entity.dto.ToolUseDto" databaseId="postgresql">
+        SELECT flow_id as toolId,COUNT(*) AS useCount
+        FROM chat_info
+        <where>
+            and sub = 'spark-link'
+            <if test="toolIds != null and toolIds.size() > 0">
+                and
+                <foreach collection="toolIds" item="toolId" open="(" separator="or" close=")">
+                    POSITION(#{toolId} IN flow_id) > 0
                 </foreach>
             </if>
         </where>

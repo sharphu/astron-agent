@@ -48,23 +48,32 @@ func (dao *AppDao) Insert(data *models.App, tx *sql.Tx) (int64, error) {
 		return 0, fmt.Errorf("insert app data, data must not been nil")
 	}
 	log.Printf("insert app sql is %s", dao.insertSql)
+	insertSQL := adaptSQLForDB(dao.db, dao.insertSql)
 	if tx == nil {
-		result, err := dao.db.GetMysql().Exec(dao.insertSql,
+		result, err := dao.db.GetDB().Exec(insertSQL,
 			data.AppId, data.AppName, data.DevId, data.ChannelId, data.Source, data.IsDisable, data.Desc, data.IsDelete, data.CreateTime, data.UpdateTime, data.Extend)
 		if err != nil {
 			log.Printf("insert app error: %v", err)
 			return 0, err
 		}
-		return result.LastInsertId()
+		rowsAffected, rowsErr := result.RowsAffected()
+		if rowsErr != nil {
+			return 1, nil
+		}
+		return rowsAffected, nil
 	}
-	result, err := tx.Exec(dao.insertSql,
+	result, err := tx.Exec(insertSQL,
 		data.AppId, data.AppName, data.DevId, data.ChannelId, data.Source, data.IsDisable, data.Desc,
 		data.IsDelete, data.CreateTime, data.UpdateTime, data.Extend)
 	if err != nil {
 		log.Printf("insert app error: %v", err)
 		return 0, err
 	}
-	return result.LastInsertId()
+	rowsAffected, rowsErr := result.RowsAffected()
+	if rowsErr != nil {
+		return 1, nil
+	}
+	return rowsAffected, nil
 }
 
 func (dao *AppDao) Update(querySql []SqlOption, tx *sql.Tx, setSql ...SqlOption) (int64, error) {
@@ -74,9 +83,10 @@ func (dao *AppDao) Update(querySql []SqlOption, tx *sql.Tx, setSql ...SqlOption)
 		return 0, err
 	}
 
+	finalSql = adaptSQLForDB(dao.db, finalSql)
 	log.Printf("update app sql is %s", finalSql)
 	if tx == nil {
-		result, err := dao.db.GetMysql().Exec(finalSql, params...)
+		result, err := dao.db.GetDB().Exec(finalSql, params...)
 		if err != nil {
 			log.Printf("update app error: %v", err)
 			return 0, err
@@ -101,8 +111,9 @@ func (dao *AppDao) Delete(tx *sql.Tx, querySql ...SqlOption) (int64, error) {
 		return 0, err
 	}
 	log.Printf("delete app sql is %s", finalSql)
+	finalSql = adaptSQLForDB(dao.db, finalSql)
 	if tx == nil {
-		result, err := dao.db.GetMysql().Exec(finalSql, params...)
+		result, err := dao.db.GetDB().Exec(finalSql, params...)
 		if err != nil {
 			log.Printf("delete app error: %v", err)
 			return 0, err
@@ -120,9 +131,10 @@ func (dao *AppDao) Delete(tx *sql.Tx, querySql ...SqlOption) (int64, error) {
 func (dao *AppDao) Select(options ...SqlOption) ([]*models.App, error) {
 	finalSql, params := buildQuery(dao.selectSql, options...)
 
+	finalSql = adaptSQLForDB(dao.db, finalSql)
 	log.Printf("select app sql is %s,param is %v", finalSql, params)
 
-	rows, err := dao.db.GetMysql().Query(finalSql, params...)
+	rows, err := dao.db.GetDB().Query(finalSql, params...)
 	if err != nil {
 		log.Printf("select app error: %v", err)
 		return nil, err
@@ -155,9 +167,10 @@ func (dao *AppDao) Count(isLock bool, tx *sql.Tx, options ...SqlOption) (int64, 
 	if isLock {
 		finalSql = finalSql + " for update"
 	}
+	finalSql = adaptSQLForDB(dao.db, finalSql)
 	log.Printf("count app sql is %s,param is %v", finalSql, params)
 	if tx == nil {
-		rows, err := dao.db.GetMysql().Query(finalSql, params...)
+		rows, err := dao.db.GetDB().Query(finalSql, params...)
 		if err != nil {
 			log.Printf("count app error: %v", err)
 			return 0, err
@@ -173,7 +186,7 @@ func (dao *AppDao) Count(isLock bool, tx *sql.Tx, options ...SqlOption) (int64, 
 }
 
 func (dao *AppDao) BeginTx() (*sql.Tx, error) {
-	return dao.db.GetMysql().Begin()
+	return dao.db.GetDB().Begin()
 }
 
 func (dao *AppDao) countRows(rows *sql.Rows) (int64, error) {

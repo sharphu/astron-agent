@@ -3,6 +3,8 @@ package dao
 import (
 	"bytes"
 	"fmt"
+
+	"tenant/tools/database"
 )
 
 type SqlOption func() (string, []interface{})
@@ -56,4 +58,11 @@ func buildUpdateWithQuery(updateSql string, whereSql []SqlOption, setSql ...SqlO
 	params = append(params, setParams...)
 	params = append(params, whereParam...)
 	return finalSql, params, nil
+}
+
+func adaptSQLForDB(db *database.Database, sqlText string) string {
+	if db == nil {
+		return sqlText
+	}
+	return db.RewritePlaceholders(sqlText)
 }

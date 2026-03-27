@@ -19,16 +19,59 @@ from workflow.domain.models.license import License  # noqa: F401
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+PG_FAMILY = {"kingbase", "postgresql", "postgres", "pg"}
 
 
 def get_database_url() -> str:
+    db_type = os.getenv("DB_TYPE", "mysql").lower().strip()
+    if db_type in PG_FAMILY:
+        host = os.getenv("KINGBASE_HOST")
+        port = os.getenv("KINGBASE_PORT")
+        user = os.getenv("KINGBASE_USER")
+        password = os.getenv("KINGBASE_PASSWORD")
+        db = os.getenv("KINGBASE_DB")
+        missing = [
+            key
+            for key, value in [
+                ("KINGBASE_HOST", host),
+                ("KINGBASE_PORT", port),
+                ("KINGBASE_USER", user),
+                ("KINGBASE_PASSWORD", password),
+                ("KINGBASE_DB", db),
+            ]
+            if not value
+        ]
+        if missing:
+            raise ValueError(
+                "Missing required environment variables for Alembic: "
+                + ", ".join(missing)
+            )
+        sync_driver = os.getenv("KINGBASE_SYNC_DRIVER", "psycopg2").lower().strip()
+        if sync_driver == "ksycopg2":
+            return f"kingbase+ksycopg2://{user}:{password}@{host}:{port}/{db}"
+        return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
     host = os.getenv("MYSQL_HOST")
     port = os.getenv("MYSQL_PORT")
     user = os.getenv("MYSQL_USER")
     password = os.getenv("MYSQL_PASSWORD")
     db = os.getenv("MYSQL_DB")
-    database_url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{db}"
-    return database_url
+    missing = [
+        key
+        for key, value in [
+            ("MYSQL_HOST", host),
+            ("MYSQL_PORT", port),
+            ("MYSQL_USER", user),
+            ("MYSQL_PASSWORD", password),
+            ("MYSQL_DB", db),
+        ]
+        if not value
+    ]
+    if missing:
+        raise ValueError(
+            "Missing required environment variables for Alembic: "
+            + ", ".join(missing)
+        )
+    return f"mysql+pymysql://{user}:{password}@{host}:{port}/{db}"
 
 
 config.set_main_option("sqlalchemy.url", get_database_url())

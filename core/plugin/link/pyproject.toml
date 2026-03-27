@@ -12,6 +12,9 @@ dependencies = [
     "sqlmodel>=0.0.18",
     "loguru>=0.7.2",
     "pymysql>=1.1.1",
+    "psycopg2-binary>=2.9.9",
+    # Kingbase Alembic sync driver; PyPI has wheels for Linux/Windows only (not macOS).
+    "ksycopg2>=2.9.0; sys_platform != 'darwin'",
     "openapi-spec-validator>=0.7.1",
     "appdirs>=1.4.4",
     "opentelemetry-sdk>=1.22.0",

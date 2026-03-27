@@ -13,7 +13,13 @@
                     tool_id,
                     MAX(
                     CASE
-                    WHEN version IS NOT NULL THEN CAST(SUBSTRING_INDEX(SUBSTRING(version, 2), '.', 1) AS UNSIGNED)
+                    WHEN version IS NOT NULL THEN CAST(
+                        CASE
+                            WHEN POSITION('.' IN SUBSTRING(version, 2)) > 0
+                            THEN SUBSTRING(SUBSTRING(version, 2), 1, POSITION('.' IN SUBSTRING(version, 2)) - 1)
+                            ELSE SUBSTRING(version, 2)
+                        END
+                    AS INTEGER)
                     ELSE NULL
                     END
                     ) AS max_major
@@ -40,9 +46,15 @@
                 and t.space_id =#{spaceId}
             </if>
             and ((t.version IS NULL AND t1.max_major IS NULL) or
-            (CAST(SUBSTRING_INDEX(SUBSTRING(t.version, 2), '.', 1) AS UNSIGNED) = t1.max_major))
+            (CAST(
+                CASE
+                    WHEN POSITION('.' IN SUBSTRING(t.version, 2)) > 0
+                    THEN SUBSTRING(SUBSTRING(t.version, 2), 1, POSITION('.' IN SUBSTRING(t.version, 2)) - 1)
+                    ELSE SUBSTRING(t.version, 2)
+                END
+            AS INTEGER) = t1.max_major))
             <if test="content!=null and content !=''">
-                and (instr(t.name, #{content}) or instr(t.description, #{content}))
+                and (POSITION(#{content} IN t.name) > 0 or POSITION(#{content} IN t.description) > 0)
             </if>
             <if test="status != null">
                 and t.status = #{status}
@@ -59,7 +71,13 @@
                     tool_id,
                     MAX(
                         CASE
-                            WHEN version IS NOT NULL THEN CAST(SUBSTRING_INDEX(SUBSTRING(version, 2), '.', 1) AS UNSIGNED)
+                            WHEN version IS NOT NULL THEN CAST(
+                                CASE
+                                    WHEN POSITION('.' IN SUBSTRING(version, 2)) > 0
+                                    THEN SUBSTRING(SUBSTRING(version, 2), 1, POSITION('.' IN SUBSTRING(version, 2)) - 1)
+                                    ELSE SUBSTRING(version, 2)
+                                END
+                            AS INTEGER)
                             ELSE NULL
                         END
                     ) AS max_major
@@ -85,16 +103,25 @@
                 and t.space_id =#{spaceId}
             </if>
             and ((t.version IS NULL AND t1.max_major IS NULL) or
-            (CAST(SUBSTRING_INDEX(SUBSTRING(t.version, 2), '.', 1) AS UNSIGNED) = t1.max_major))
+            (CAST(
+                CASE
+                    WHEN POSITION('.' IN SUBSTRING(t.version, 2)) > 0
+                    THEN SUBSTRING(SUBSTRING(t.version, 2), 1, POSITION('.' IN SUBSTRING(t.version, 2)) - 1)
+                    ELSE SUBSTRING(t.version, 2)
+                END
+            AS INTEGER) = t1.max_major))
             <if test="content!=null and content !=''">
-                and (instr(t.name, #{content}) or instr(t.description, #{content}))
+                and (POSITION(#{content} IN t.name) > 0 or POSITION(#{content} IN t.description) > 0)
             </if>
             <if test="status != null">
                 and t.status = #{status}
             </if>
         </where>
         order by t.is_public desc, t.update_time desc
-        <if test="limit != null"> LIMIT <if test="start != null">#{start},</if>#{limit} </if>
+        <if test="limit != null">
+            LIMIT #{limit}
+            <if test="start != null"> OFFSET #{start}</if>
+        </if>
     </select>
 
     <select id="getModelListSquareByCondition" resultType="com.iflytek.astron.console.toolkit.entity.table.tool.ToolBox">
@@ -105,19 +132,25 @@
                 MAX(
                     CASE
                         WHEN version IS NOT NULL
-                        THEN CAST(SUBSTRING_INDEX(SUBSTRING(version, 2), '.', 1) AS UNSIGNED)
+                        THEN CAST(
+                            CASE
+                                WHEN POSITION('.' IN SUBSTRING(version, 2)) > 0
+                                THEN SUBSTRING(SUBSTRING(version, 2), 1, POSITION('.' IN SUBSTRING(version, 2)) - 1)
+                                ELSE SUBSTRING(version, 2)
+                            END
+                        AS INTEGER)
                         ELSE NULL
                     END
                 ) AS max_version
         from tool_box
         <where>
             and deleted = 0
-            and instr(display_source, #{source})
+            and POSITION(#{source} IN display_source) > 0
             <if test="content!=null and content !=''">
-                and (instr(name, #{content}) or instr(description, #{content}))
+                and (POSITION(#{content} IN name) > 0 or POSITION(#{content} IN description) > 0)
             </if>
             <if test="tags != null">
-                and tool_tag LIKE CONCAT('%', CAST(#{tags} AS CHAR), '%')
+                and tool_tag LIKE CONCAT('%', #{tags}, '%')
             </if>
             and (
                 is_public = 1
@@ -134,12 +167,12 @@
                 <foreach collection="favorites" item="favorites" open="(" close=")" separator=",">#{favorites}</foreach>
             </if>
             and t1.deleted = 0
-            and instr(t1.display_source, #{source})
+            and POSITION(#{source} IN t1.display_source) > 0
             <if test="content!=null and content !=''">
-                and (instr(t1.name, #{content}) or instr(t1.description, #{content}))
+                and (POSITION(#{content} IN t1.name) > 0 or POSITION(#{content} IN t1.description) > 0)
             </if>
             <if test="tags != null">
-                and t1.tool_tag LIKE CONCAT('%', CAST(#{tags} AS CHAR), '%')
+                and t1.tool_tag LIKE CONCAT('%', #{tags}, '%')
             </if>
             and (
             t1.is_public = 1
@@ -150,7 +183,13 @@
              and (t1.version IS NULL
                 AND t2.max_version IS NULL)
                 OR (
-                    CAST(SUBSTRING_INDEX(SUBSTRING(t1.version, 2), '.', 1) AS UNSIGNED) = t2.max_version
+                    CAST(
+                        CASE
+                            WHEN POSITION('.' IN SUBSTRING(t1.version, 2)) > 0
+                            THEN SUBSTRING(SUBSTRING(t1.version, 2), 1, POSITION('.' IN SUBSTRING(t1.version, 2)) - 1)
+                            ELSE SUBSTRING(t1.version, 2)
+                        END
+                    AS INTEGER) = t2.max_version
                 )
         </where>
         <choose>
@@ -160,8 +199,9 @@
             <otherwise>order by t1.top desc, t1.name asc, t1.update_time desc</otherwise>
         </choose>
         <if test="limit != null">
-            LIMIT
-            <if test="start != null">#{start},</if>#{limit} </if>
+            LIMIT #{limit}
+            <if test="start != null"> OFFSET #{start}</if>
+        </if>
     </select>
 
     <select id="selectPublicTool" resultType="com.iflytek.astron.console.toolkit.entity.table.tool.ToolBox">
@@ -211,10 +251,10 @@
         SELECT count(1) FROM tool_box tb
         <where>
             <if test="content!=null and content !=''">
-                and (instr(tb.name, #{content}) or instr(tb.description, #{content}))
+                and (POSITION(#{content} IN tb.name) > 0 or POSITION(#{content} IN tb.description) > 0)
             </if>
             <if test="tags != null">
-                and tb.tool_tag LIKE CONCAT('%', CAST(#{tags} AS CHAR), '%')
+                and tb.tool_tag LIKE CONCAT('%', #{tags}, '%')
             </if>
             and tb.deleted = 0
             and (
@@ -237,7 +277,13 @@
         select tool_id,
         MAX(
         CASE
-        WHEN version IS NOT NULL THEN CAST(SUBSTRING_INDEX(SUBSTRING(version, 2), '.', 1) AS UNSIGNED)
+        WHEN version IS NOT NULL THEN CAST(
+            CASE
+                WHEN POSITION('.' IN SUBSTRING(version, 2)) > 0
+                THEN SUBSTRING(SUBSTRING(version, 2), 1, POSITION('.' IN SUBSTRING(version, 2)) - 1)
+                ELSE SUBSTRING(version, 2)
+            END
+        AS INTEGER)
         ELSE NULL
         END
         ) AS max_major
@@ -255,6 +301,12 @@
             #{toolId}
         </foreach>
         and ((t.version IS NULL AND t1.max_major IS NULL) or
-        (CAST(SUBSTRING_INDEX(SUBSTRING(t.version, 2), '.', 1) AS UNSIGNED) = t1.max_major))
+        (CAST(
+            CASE
+                WHEN POSITION('.' IN SUBSTRING(t.version, 2)) > 0
+                THEN SUBSTRING(SUBSTRING(t.version, 2), 1, POSITION('.' IN SUBSTRING(t.version, 2)) - 1)
+                ELSE SUBSTRING(t.version, 2)
+            END
+        AS INTEGER) = t1.max_major))
     </select>
 </mapper>

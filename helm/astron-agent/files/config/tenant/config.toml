@@ -7,6 +7,7 @@ dbType = "mysql"
 username = ""
 password = ""
 url = ""
+dsn = ""
 maxOpenConns = 10
 maxIdleConns = 5
 

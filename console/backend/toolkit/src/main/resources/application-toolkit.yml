@@ -1,6 +1,6 @@
 # PageHelper configuration for MyBatis pagination
 pagehelper:
-  helperDialect: mysql
+  helperDialect: ${PAGEHELPER_DIALECT:mysql}
   params: count=countSql
   reasonable: true
   supportMethodsArguments: true

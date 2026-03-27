@@ -53,11 +53,11 @@ func TestNewDatabase(t *testing.T) {
 					MaxOpenConns int    `toml:"maxOpenConns"`
 					MaxIdleConns int    `toml:"maxIdleConns"`
 				}{
-					DBType: "postgresql",
+					DBType: "sqlite",
 				},
 			},
 			wantErr:     true,
-			expectedErr: "unsupported dbType: postgresql",
+			expectedErr: "unsupported dbType: sqlite",
 		},
 		{
 			name: "mysql with empty username should return error",
