@@ -88,6 +88,14 @@ PreviewKnowledge Mapper
         AND content::jsonb ->> 'auditSuggest' IN ('block', 'review')
         ORDER BY file_id ASC, seq_id ASC
     </select>
+    <select id="findByFileIdInAndAuditType" resultType="com.iflytek.astron.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge" databaseId="dm">
+        SELECT * FROM preview_knowledge WHERE file_id IN
+        <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
+            #{fileId}
+        </foreach>
+        AND content::jsonb ->> 'auditSuggest' IN ('block', 'review')
+        ORDER BY file_id ASC, seq_id ASC
+    </select>
 
     <!--
         Batch insert preview knowledge entries

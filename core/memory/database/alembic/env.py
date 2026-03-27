@@ -89,7 +89,7 @@ def include_object(
     adapter = _get_adapter()
     db_type = adapter.get_db_type()
 
-    if db_type in ("postgresql", "kingbase"):
+    if db_type in ("postgresql", "kingbase", "dm"):
         # Only include objects from sparkdb_manager schema
         if type_ == "schema":
             return name == "sparkdb_manager"

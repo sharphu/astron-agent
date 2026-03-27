@@ -21,6 +21,7 @@ INIT_VERSION = "5c4f1b5ab83d"
 LOCK_KEY = "link_database_migration_lock"
 LOCK_TTL_SECONDS = int(os.getenv("LINK_DB_MIGRATION_LOCK_TTL", "60"))
 PG_FAMILY = {"kingbase", "postgresql", "postgres", "pg"}
+DM_FAMILY = {"dm", "dameng"}
 
 # MySQL error codes
 MYSQL_ERROR_SELECT_DENIED = 1142
@@ -38,6 +39,29 @@ logging.basicConfig(
 def _check_db_url() -> None:
     """Check DB URL and validate required env vars."""
     db_type = (os.getenv(const.DB_TYPE_KEY, "mysql") or "mysql").lower().strip()
+    if db_type in DM_FAMILY:
+        dm_host = os.getenv(const.DM_HOST_KEY)
+        dm_port = os.getenv(const.DM_PORT_KEY)
+        dm_user = os.getenv(const.DM_USER_KEY)
+        dm_password = os.getenv(const.DM_PASSWORD_KEY)
+        dm_db = os.getenv(const.DM_DB_KEY)
+        missing_envs = [
+            key
+            for key, value in [
+                (const.DM_HOST_KEY, dm_host),
+                (const.DM_PORT_KEY, dm_port),
+                (const.DM_USER_KEY, dm_user),
+                (const.DM_PASSWORD_KEY, dm_password),
+                (const.DM_DB_KEY, dm_db),
+            ]
+            if not value
+        ]
+        if missing_envs:
+            raise ValueError(
+                "Missing required DM environment variables for migration: "
+                f"{', '.join(missing_envs)}"
+            )
+        return
     if db_type in PG_FAMILY:
         kingbase_host = os.getenv("KINGBASE_HOST")
         kingbase_port = os.getenv("KINGBASE_PORT")

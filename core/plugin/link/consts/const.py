@@ -34,7 +34,14 @@ from plugin.link.consts.keys.mysql_keys import (
     MYSQL_PORT_KEY,
     MYSQL_USER_KEY,
 )
-from plugin.link.consts.keys.database_keys import DB_TYPE_KEY
+from plugin.link.consts.keys.database_keys import (
+    DB_TYPE_KEY,
+    DM_DB_KEY,
+    DM_HOST_KEY,
+    DM_PASSWORD_KEY,
+    DM_PORT_KEY,
+    DM_USER_KEY,
+)
 
 # redis
 # pylint: disable=unused-import  # These imports are used via module attribute access

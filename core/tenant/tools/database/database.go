@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	_ "gitee.com/chunanyong/dm"
 )
 
 type DBType string
@@ -17,6 +18,7 @@ type DBType string
 const (
 	MYSQL    DBType = "mysql"
 	KINGBASE DBType = "kingbase"
+	DM       DBType = "dm"
 )
 
 var pgFamily = map[DBType]struct{}{
@@ -51,6 +53,13 @@ func NewDatabase(conf *config.Config) (*Database, error) {
 			return nil, err
 		}
 		db.dbType = KINGBASE
+		return db, nil
+	case DM:
+		err := db.buildDM(conf)
+		if err != nil {
+			return nil, err
+		}
+		db.dbType = DM
 		return db, nil
 	default:
 		return nil, fmt.Errorf("unsupported dbType: %s", conf.DataBase.DBType)
@@ -99,6 +108,31 @@ func (db *Database) buildKingbase(conf *config.Config) error {
 		dsn = fmt.Sprintf("%s user=%s password=%s", dsn, conf.DataBase.UserName, conf.DataBase.Password)
 	}
 	client, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return err
+	}
+	client.SetMaxOpenConns(conf.DataBase.MaxOpenConns)
+	client.SetMaxIdleConns(conf.DataBase.MaxIdleConns)
+	err = client.Ping()
+	if err != nil {
+		return err
+	}
+	db.mysql = client
+	return nil
+}
+
+func (db *Database) buildDM(conf *config.Config) error {
+	if len(conf.DataBase.UserName) == 0 {
+		return errors.New("dm username is empty")
+	}
+	if len(conf.DataBase.Password) == 0 {
+		return errors.New("dm password is empty")
+	}
+	if len(conf.DataBase.Url) == 0 {
+		return errors.New("dm url is empty")
+	}
+	dsn := fmt.Sprintf("dm://%s:%s@%s", conf.DataBase.UserName, conf.DataBase.Password, conf.DataBase.Url)
+	client, err := sql.Open("dm", dsn)
 	if err != nil {
 		return err
 	}

@@ -153,6 +153,15 @@
         OR content::jsonb ->> 'content' LIKE CONCAT('%', #{query}, '%'))
         ORDER BY file_id ASC, seq_id ASC
     </select>
+    <select id="findByFileIdInAndContentLike" resultType="com.iflytek.astron.console.toolkit.entity.table.knowledge.MysqlKnowledge" databaseId="dm">
+        SELECT * FROM knowledge WHERE file_id IN
+        <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
+            #{fileId}
+        </foreach>
+        AND (content::jsonb ->> 'knowledge' LIKE CONCAT('%', #{query}, '%')
+        OR content::jsonb ->> 'content' LIKE CONCAT('%', #{query}, '%'))
+        ORDER BY file_id ASC, seq_id ASC
+    </select>
 
     <!--
         Query knowledge list by fileIds and audit type (block/review)
@@ -169,6 +178,14 @@
         ORDER BY file_id ASC, seq_id ASC
     </select>
     <select id="findByFileIdInAndAuditType" resultType="com.iflytek.astron.console.toolkit.entity.table.knowledge.MysqlKnowledge" databaseId="postgresql">
+        SELECT * FROM knowledge WHERE file_id IN
+        <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
+            #{fileId}
+        </foreach>
+        AND content::jsonb ->> 'auditSuggest' IN ('block', 'review')
+        ORDER BY file_id ASC, seq_id ASC
+    </select>
+    <select id="findByFileIdInAndAuditType" resultType="com.iflytek.astron.console.toolkit.entity.table.knowledge.MysqlKnowledge" databaseId="dm">
         SELECT * FROM knowledge WHERE file_id IN
         <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
             #{fileId}
@@ -218,6 +235,14 @@
         AND (content::jsonb ->> 'knowledge' LIKE CONCAT('%', #{query}, '%')
         OR content::jsonb ->> 'content' LIKE CONCAT('%', #{query}, '%'))
     </select>
+    <select id="countByFileIdInAndContentLike" resultType="java.lang.Long" databaseId="dm">
+        SELECT COUNT(*) FROM knowledge WHERE file_id IN
+        <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
+            #{fileId}
+        </foreach>
+        AND (content::jsonb ->> 'knowledge' LIKE CONCAT('%', #{query}, '%')
+        OR content::jsonb ->> 'content' LIKE CONCAT('%', #{query}, '%'))
+    </select>
 
     <!--
         Count the number of knowledge entries by fileIds and audit type (block/review)
@@ -233,6 +258,13 @@
         AND JSON_EXTRACT(content, '$.auditSuggest') IN ('block', 'review')
     </select>
     <select id="countByFileIdInAndAuditType" resultType="java.lang.Long" databaseId="postgresql">
+        SELECT COUNT(*) FROM knowledge WHERE file_id IN
+        <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
+            #{fileId}
+        </foreach>
+        AND content::jsonb ->> 'auditSuggest' IN ('block', 'review')
+    </select>
+    <select id="countByFileIdInAndAuditType" resultType="java.lang.Long" databaseId="dm">
         SELECT COUNT(*) FROM knowledge WHERE file_id IN
         <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
             #{fileId}

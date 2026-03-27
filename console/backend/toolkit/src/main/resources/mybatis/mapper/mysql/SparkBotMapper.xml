@@ -167,4 +167,17 @@
           and ((bmc.model_config::jsonb -> 'modelConfig' -> 'models' -> 'plan' ->> 'domain') = #{domain}
             or (bmc.model_config::jsonb -> 'modelConfig' -> 'models' -> 'summary' ->> 'domain') = #{domain});
     </select>
+    <select id="checkDomainIsUsage" resultType="java.lang.Integer" databaseId="dm">
+        SELECT
+            COUNT(*)
+        FROM
+            spark_bot sb
+                LEFT JOIN bot_model_config bmc ON
+                sb.id = bmc.bot_id
+        WHERE
+            sb.user_id = #{uid}
+          and sb.deleted = 0
+          and ((bmc.model_config::jsonb -> 'modelConfig' -> 'models' -> 'plan' ->> 'domain') = #{domain}
+            or (bmc.model_config::jsonb -> 'modelConfig' -> 'models' -> 'summary' ->> 'domain') = #{domain});
+    </select>
 </mapper>

@@ -16,6 +16,7 @@ from workflow.configs.app_config import DatabaseConfig
 from workflow.extensions.middleware.base import Service, ServiceType
 
 PG_FAMILY = {"kingbase", "postgresql", "postgres", "pg"}
+DM_FAMILY = {"dm", "dameng"}
 
 
 class DatabaseService(Service):
@@ -58,6 +59,11 @@ class DatabaseService(Service):
         self.kingbase_user = config.kingbase_user
         self.kingbase_password = config.kingbase_password
         self.kingbase_database = config.kingbase_database
+        self.dm_host = config.dm_host
+        self.dm_port = config.dm_port
+        self.dm_user = config.dm_user
+        self.dm_password = config.dm_password
+        self.dm_database = config.dm_database
         # Store pool configuration
         self.connect_timeout = connect_timeout
         self.pool_size = pool_size
@@ -71,13 +77,18 @@ class DatabaseService(Service):
     def _is_pg_family(self) -> bool:
         return self.db_type in PG_FAMILY
 
+    def _is_dm_family(self) -> bool:
+        return self.db_type in DM_FAMILY
+
     def _build_base_url(self) -> str:
         """
         Build the base connection URL without database name.
         Used for administrative operations like CREATE DATABASE.
         For PG family, connects to the default 'postgres' database.
         """
-        if self._is_pg_family():
+        if self._is_dm_family():
+            return f"dm+dmPython://{self.dm_user}:{self.dm_password}@{self.dm_host}:{self.dm_port}"
+        elif self._is_pg_family():
             sync_driver = os.getenv("KINGBASE_SYNC_DRIVER", "psycopg2").lower().strip()
             if sync_driver == "ksycopg2":
                 return f"kingbase+ksycopg2://{self.kingbase_user}:{self.kingbase_password}@{self.kingbase_host}:{self.kingbase_port}/postgres"
@@ -88,7 +99,9 @@ class DatabaseService(Service):
         """
         Build the complete database connection URL with database name.
         """
-        if self._is_pg_family():
+        if self._is_dm_family():
+            return f"dm+dmPython://{self.dm_user}:{self.dm_password}@{self.dm_host}:{self.dm_port}/{self.dm_database}"
+        elif self._is_pg_family():
             sync_driver = os.getenv("KINGBASE_SYNC_DRIVER", "psycopg2").lower().strip()
             if sync_driver == "ksycopg2":
                 return f"kingbase+ksycopg2://{self.kingbase_user}:{self.kingbase_password}@{self.kingbase_host}:{self.kingbase_port}/{self.kingbase_database}"
@@ -119,7 +132,14 @@ class DatabaseService(Service):
             base_url = self._build_base_url()
             engine = self._create_engine(base_url)
             with engine.connect() as conn:
-                if self._is_pg_family():
+                if self._is_dm_family():
+                    db_name = self.dm_database
+                    conn.execute(text("COMMIT"))
+                    try:
+                        conn.execute(text(f'CREATE DATABASE "{db_name}"'))
+                    except Exception:
+                        logger.info(f"Database '{db_name}' may already exist, skip creating.")
+                elif self._is_pg_family():
                     db_name = self.kingbase_database
                     conn.execute(text("COMMIT"))
                     try:

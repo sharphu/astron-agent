@@ -31,6 +31,14 @@
         ORDER BY created_at DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
+    <select id="selectByType" resultMap="BaseResultMap" databaseId="dm">
+        SELECT *
+        FROM notifications
+        WHERE type = #{type}
+          AND (expire_at IS NULL OR expire_at > NOW())
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
 
     <select id="selectBroadcastMessages" resultMap="BaseResultMap" databaseId="mysql">
         SELECT *
@@ -42,6 +50,15 @@
         LIMIT #{offset}, #{limit}
     </select>
     <select id="selectBroadcastMessages" resultMap="BaseResultMap" databaseId="postgresql">
+        SELECT *
+        FROM notifications
+        WHERE type = 'broadcast'
+          AND created_at BETWEEN #{startTime} AND #{endTime}
+          AND (expire_at IS NULL OR expire_at > NOW())
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <select id="selectBroadcastMessages" resultMap="BaseResultMap" databaseId="dm">
         SELECT *
         FROM notifications
         WHERE type = 'broadcast'

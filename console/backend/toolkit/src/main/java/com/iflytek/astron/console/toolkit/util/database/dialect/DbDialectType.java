@@ -6,7 +6,8 @@ public enum DbDialectType {
 
     MYSQL,
     POSTGRES,
-    KINGBASE;
+    KINGBASE,
+    DM;
 
     public static DbDialectType fromString(String value) {
         if (value == null || value.isBlank()) {
@@ -21,6 +22,8 @@ public enum DbDialectType {
                 return POSTGRES;
             case "kingbase":
                 return KINGBASE;
+            case "dm":
+                return DM;
             default:
                 throw new IllegalArgumentException("Unsupported DB dialect: " + value);
         }

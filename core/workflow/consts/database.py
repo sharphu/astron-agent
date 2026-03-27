@@ -8,6 +8,10 @@ for database nodes in the workflow system.
 from enum import Enum
 
 
+PG_FAMILY = {"kingbase", "postgresql", "postgres", "pg"}
+DM_FAMILY = {"dm", "dameng"}
+
+
 class ExecuteEnv(Enum):
     """
     SQL statement execution environment enumeration.

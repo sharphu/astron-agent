@@ -8,6 +8,7 @@ from plugin.link.domain.models.utils import DatabaseService, RedisService
 data_base_singleton: Optional[DatabaseService] = None
 redis_singleton: Optional[RedisService] = None
 PG_FAMILY = {"kingbase", "postgresql", "postgres", "pg"}
+DM_FAMILY = {"dm", "dameng"}
 
 
 def init_data_base() -> None:
@@ -17,7 +18,30 @@ def init_data_base() -> None:
     # Use global statement to modify module-level singleton instance
     global data_base_singleton
     db_type = (os.getenv(const.DB_TYPE_KEY, "mysql") or "mysql").lower().strip()
-    if db_type in PG_FAMILY:
+    if db_type in DM_FAMILY:
+        host = os.getenv(const.DM_HOST_KEY)
+        port = os.getenv(const.DM_PORT_KEY)
+        user = os.getenv(const.DM_USER_KEY)
+        password = os.getenv(const.DM_PASSWORD_KEY)
+        db = os.getenv(const.DM_DB_KEY)
+        missing = [
+            key
+            for key, value in [
+                (const.DM_HOST_KEY, host),
+                (const.DM_PORT_KEY, port),
+                (const.DM_USER_KEY, user),
+                (const.DM_PASSWORD_KEY, password),
+                (const.DM_DB_KEY, db),
+            ]
+            if not value
+        ]
+        if missing:
+            raise ValueError(
+                "Missing required DM environment variables: "
+                + ", ".join(missing)
+            )
+        db_url = f"dm+dmPython://{user}:{password}@{host}:{port}/{db}"
+    elif db_type in PG_FAMILY:
         host = os.getenv("KINGBASE_HOST")
         port = os.getenv("KINGBASE_PORT")
         user = os.getenv("KINGBASE_USER")

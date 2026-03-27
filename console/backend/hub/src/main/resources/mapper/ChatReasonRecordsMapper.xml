@@ -65,5 +65,9 @@
         DELETE FROM chat_reason_records
         WHERE create_time &lt; NOW() - CAST(#{days} || ' days' AS INTERVAL)
     </delete>
+    <delete id="deleteByCreateTimeBefore" databaseId="dm">
+        DELETE FROM chat_reason_records
+        WHERE create_time &lt; NOW() - CAST(#{days} || ' days' AS INTERVAL)
+    </delete>
 
 </mapper>

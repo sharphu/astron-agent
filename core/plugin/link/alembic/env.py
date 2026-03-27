@@ -18,10 +18,34 @@ sys.path.insert(0, str(project_root))
 # access to the values within the .ini file in use.
 config = context.config
 PG_FAMILY = {"kingbase", "postgresql", "postgres", "pg"}
+DM_FAMILY = {"dm", "dameng"}
 
 
 def get_database_url() -> str:
     db_type = os.getenv("DB_TYPE", "mysql").lower().strip()
+    if db_type in DM_FAMILY:
+        host = os.getenv("DM_HOST")
+        port = os.getenv("DM_PORT")
+        user = os.getenv("DM_USER")
+        password = os.getenv("DM_PASSWORD")
+        db = os.getenv("DM_DB")
+        missing = [
+            key
+            for key, value in [
+                ("DM_HOST", host),
+                ("DM_PORT", port),
+                ("DM_USER", user),
+                ("DM_PASSWORD", password),
+                ("DM_DB", db),
+            ]
+            if not value
+        ]
+        if missing:
+            raise ValueError(
+                "Missing required environment variables for Alembic: "
+                + ", ".join(missing)
+            )
+        return f"dm+dmPython://{user}:{password}@{host}:{port}/{db}"
     if db_type in PG_FAMILY:
         host = os.getenv("KINGBASE_HOST")
         port = os.getenv("KINGBASE_PORT")

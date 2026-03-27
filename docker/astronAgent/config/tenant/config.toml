@@ -10,5 +10,14 @@ url = ""
 maxOpenConns = 10
 maxIdleConns = 5
 
+# For DM:
+# [database]
+# dbType = "dm"
+# username = "SYSDBA"
+# password = "SYSDBA"
+# url = "localhost:5236"
+# maxOpenConns = 10
+# maxIdleConns = 5
+
 [log]
 logFile = "./logs/app.log"

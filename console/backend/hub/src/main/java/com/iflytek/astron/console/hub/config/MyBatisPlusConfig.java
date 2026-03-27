@@ -54,6 +54,7 @@ public class MyBatisPlusConfig {
         String normalized = dbType == null ? "mysql" : dbType.trim().toLowerCase(Locale.ROOT);
         return switch (normalized) {
             case "kingbase", "postgres", "postgresql", "pg" -> DbType.POSTGRE_SQL;
+            case "dm" -> DbType.DM;
             default -> DbType.MYSQL;
         };
     }
@@ -65,6 +66,7 @@ public class MyBatisPlusConfig {
         properties.setProperty("MySQL", "mysql");
         properties.setProperty("PostgreSQL", "postgresql");
         properties.setProperty("KingbaseES", "postgresql");
+        properties.setProperty("DM DBMS", "dm");
         provider.setProperties(properties);
         return provider;
     }

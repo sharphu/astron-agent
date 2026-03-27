@@ -530,6 +530,40 @@ wheels = [
 ]
 
 [[package]]
+name = "dmpython"
+version = "2.5.30"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5c/2f/e9001336b980dc86857efa8b631bba78a47b0c9611fb5f6ebe0949cb6a97/dmpython-2.5.30-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:aee66dda1803137484e89aa74d1511da6f884e76745ebec54c87e8ecfb93b98e", size = 11646639, upload-time = "2025-12-09T05:28:54.486Z" },
+    { url = "https://files.pythonhosted.org/packages/50/e9/eb679bb84d4135509c93c96be8f0c8e7d85c1f3ebbdfbd550d88ed70be1e/dmpython-2.5.30-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:2c260930b410a50b590a4c194f857f3f7436d3e4418e2a36177d9cd07784d628", size = 11143705, upload-time = "2025-12-09T05:29:23.69Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/4d/abe2485766756d474b9647761b8dacba1414325715fdabeeab5ea037317d/dmpython-2.5.30-cp311-cp311-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:440d115fd57ccbc1ffeb136f50bbf1baa85dd5762964e88d83493cb4d9c8c553", size = 11144215, upload-time = "2025-12-09T05:29:52.263Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/2c/697610fdd95a3727503638933d51837c75ef80d8a85739a10be0223f53aa/dmpython-2.5.30-cp311-cp311-win_amd64.whl", hash = "sha256:d7944acf0aae6a2d3ea8c6ef1023a31a4afe3ce6078062d0a094433d05283e98", size = 7840451, upload-time = "2025-12-09T05:30:12.851Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/a3/efc5ce3e0f31476de7655aa0af95eb35916b2a0309e0f4c524f4fd908ee4/dmpython-2.5.30-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:1a1c2f94329647ef8a665a7f055bad83b7a377960ed8f05bbf31a520b98734f3", size = 11375996, upload-time = "2025-12-09T05:30:41.557Z" },
+    { url = "https://files.pythonhosted.org/packages/82/39/7ab4c7e163be4372ca8dd142e1a5290fc7194fdc42525f8bd28dc8e46699/dmpython-2.5.30-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:6e29461cccf3c396fd4e781467753165025e9b627d5264e37874991c8f6024b8", size = 10809875, upload-time = "2025-12-09T05:31:11.623Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/ac/4fec17e3406a2dc067303635c032b7aaa3f0f7f5ade7d535acffc1607e8c/dmpython-2.5.30-cp312-cp312-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:aef96f625d199bd89b0c142b8761a0f6fe5c6ef26360f022c15903244f2084e2", size = 10811905, upload-time = "2025-12-09T05:31:39.678Z" },
+    { url = "https://files.pythonhosted.org/packages/48/50/800d324db29cdbf60efb5e4d6113671469a7e9be39ba88c1bb470450a04c/dmpython-2.5.30-cp312-cp312-win_amd64.whl", hash = "sha256:c9fe4cafe4434ed83e195e82bc096612dfb3d8f567cd6a059fc862005c6ab426", size = 7776219, upload-time = "2025-12-09T05:32:03.375Z" },
+    { url = "https://files.pythonhosted.org/packages/40/2f/33130dce33731a5c132ed30d0c5deef6581673a4411888772b803469a093/dmpython-2.5.30-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:c72d399b28473c66d95d93298d5ecb77c1f47d352642ac14389ddba3e1a8e04e", size = 11375601, upload-time = "2025-12-09T05:32:33.416Z" },
+    { url = "https://files.pythonhosted.org/packages/76/27/959f963c2245d3bf87a208f61e62743775058bce0a19908fe3e2a2461e1e/dmpython-2.5.30-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:8032935ec6e287b5e14c5c17854c20a3964aeb8ff2c2bfe9329c4f100c513e90", size = 10804925, upload-time = "2025-12-09T05:33:05.504Z" },
+    { url = "https://files.pythonhosted.org/packages/16/c2/e66554c4986ebe195484ee5a81becbb576d661be0f162b14acf6644be937/dmpython-2.5.30-cp313-cp313-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:184a9de5d2348649930b009ea8a7f8b5776b91b64cfb007c8120d5af7ad5e50c", size = 10803234, upload-time = "2025-12-09T05:33:38.039Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/38/d612661554407b2e06c2ef86bb9ce16da2ff6e7248ecf4ccd8dc6582f34f/dmpython-2.5.30-cp313-cp313-win_amd64.whl", hash = "sha256:8e5b528d6dbe4020b7ba437972a20f12b156b247d67736c155876dc5bad56b55", size = 7776214, upload-time = "2025-12-09T05:33:59.393Z" },
+    { url = "https://files.pythonhosted.org/packages/45/48/6aadb79ea9b46ea04dfd357bf1595f15ed4123886533b74c54cd5c417415/dmpython-2.5.30-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:7386a4ada5510605164299df6502e6623437e6a6d1a403a6231895b06dbd80f3", size = 11377795, upload-time = "2025-12-09T05:34:28.454Z" },
+    { url = "https://files.pythonhosted.org/packages/2a/11/33db4f5b21b515dbf9524dd39dcd5ab33bf23e0e4f8835eaf844f970db44/dmpython-2.5.30-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:b50a6753208fed77b98c85b76a3fbe0cab8c395cdd0c1105f28d67a31d1f390f", size = 10804973, upload-time = "2025-12-09T05:35:03.825Z" },
+    { url = "https://files.pythonhosted.org/packages/44/c4/7f8417162a12537828e5eee9ca6363690b348823e1bfba097015208b3c31/dmpython-2.5.30-cp314-cp314-win_amd64.whl", hash = "sha256:5f5b80e314fdeabefb18b3de2a412383ebcf241ec37d088083da1e88df949af7", size = 8783597, upload-time = "2025-12-09T05:35:30.579Z" },
+]
+
+[[package]]
+name = "dmsqlalchemy"
+version = "2.0.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dmpython" },
+    { name = "sqlalchemy" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/45/9616f4bc11fbb57757a7419436a77596561479149d3727d340eab0477df1/dmsqlalchemy-2.0.11-py3-none-any.whl", hash = "sha256:07fe8663a2e7c57a1ab8688bd7b258b65a9102690eadff6b65c186f5ad9a47b1", size = 58630, upload-time = "2025-12-10T02:40:29.589Z" },
+]
+
+[[package]]
 name = "dnspython"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2572,6 +2606,8 @@ dependencies = [
     { name = "colorama", marker = "python_full_version < '4' and sys_platform == 'win32'" },
     { name = "confluent-kafka", marker = "python_full_version < '4'" },
     { name = "deprecated", marker = "python_full_version < '4'" },
+    { name = "dmpython", marker = "sys_platform != 'darwin'" },
+    { name = "dmsqlalchemy", marker = "sys_platform != 'darwin'" },
     { name = "dnspython", marker = "python_full_version < '4'" },
     { name = "email-validator", marker = "python_full_version < '4'" },
     { name = "eventlet", marker = "python_full_version < '4'" },
@@ -2679,6 +2715,8 @@ requires-dist = [
     { name = "colorama", marker = "python_full_version >= '3.11' and python_full_version < '4' and sys_platform == 'win32'", specifier = "==0.4.6" },
     { name = "confluent-kafka", marker = "python_full_version >= '3.11' and python_full_version < '4'", specifier = "==2.5.0" },
     { name = "deprecated", marker = "python_full_version >= '3.11' and python_full_version < '4'", specifier = "==1.2.14" },
+    { name = "dmpython", marker = "sys_platform != 'darwin'", specifier = ">=1.0.0" },
+    { name = "dmsqlalchemy", marker = "sys_platform != 'darwin'", specifier = ">=2.0.11" },
     { name = "dnspython", marker = "python_full_version >= '3.11' and python_full_version < '4'", specifier = "==2.6.1" },
     { name = "email-validator", marker = "python_full_version >= '3.11' and python_full_version < '4'", specifier = "==2.2.0" },
     { name = "eventlet", marker = "python_full_version >= '3.11' and python_full_version < '4'", specifier = "==0.40.4" },

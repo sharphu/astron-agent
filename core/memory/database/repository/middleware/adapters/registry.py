@@ -42,10 +42,16 @@ def get_adapter() -> DatabaseAdapter:
         )
 
         _adapter_instance = MySQLAdapter()
+    elif db_type == "dm":
+        from memory.database.repository.middleware.adapters.dm_adapter import (
+            DMAdapter,
+        )
+
+        _adapter_instance = DMAdapter()
     else:
         raise ValueError(
             f"Unsupported DB_TYPE: '{db_type}'. "
-            f"Supported types: postgresql, kingbase, mysql"
+            f"Supported types: postgresql, kingbase, mysql, dm"
         )
 
     return _adapter_instance

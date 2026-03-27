@@ -17,6 +17,7 @@ public class DbDialectConfig {
         return switch (type) {
             case MYSQL -> new MysqlDialect();
             case POSTGRES, KINGBASE -> new PostgresDialect();
+            case DM -> new DmDialect();
         };
     }
 }

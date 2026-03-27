@@ -67,9 +67,10 @@ spring:
   # Flyway database migration configuration
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
-    # Migration scripts location (override with FLYWAY_LOCATIONS for KingBase/PostgreSQL)
+    # Migration scripts location (override with FLYWAY_LOCATIONS for KingBase/PostgreSQL/DM)
     # For MySQL: classpath:db/migration/mysql (default)
     # For KingBase/PostgreSQL: classpath:db/migration/postgresql
+    # For DM: classpath:db/migration/dm
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration/mysql}
     # Baseline on migrate (for existing databases)
     baseline-on-migrate: true

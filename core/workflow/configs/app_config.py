@@ -306,6 +306,12 @@ class DatabaseConfig(BaseSettings):
     kingbase_password: str = Field(default="", alias="KINGBASE_PASSWORD")
     kingbase_database: str = Field(default="", alias="KINGBASE_DB")
 
+    dm_host: str = Field(default="", alias="DM_HOST")
+    dm_port: int = Field(default=5236, alias="DM_PORT")
+    dm_user: str = Field(default="", alias="DM_USER")
+    dm_password: str = Field(default="", alias="DM_PASSWORD")
+    dm_database: str = Field(default="", alias="DM_DB")
+
 
 class KnowledgeNodeLLMConfig(BaseSettings):
     """
