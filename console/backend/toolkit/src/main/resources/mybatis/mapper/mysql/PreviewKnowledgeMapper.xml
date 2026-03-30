@@ -72,12 +72,20 @@ PreviewKnowledge Mapper
         @param fileIds list of file identifiers
         @return List<MysqlPreviewKnowledge>
     -->
-    <select id="findByFileIdInAndAuditType" resultType="com.iflytek.astron.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
+    <select id="findByFileIdInAndAuditType" resultType="com.iflytek.astron.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge" databaseId="mysql">
         SELECT * FROM preview_knowledge WHERE file_id IN
         <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
             #{fileId}
         </foreach>
         AND JSON_EXTRACT(content, '$.auditSuggest') IN ('block', 'review')
+        ORDER BY file_id ASC, seq_id ASC
+    </select>
+    <select id="findByFileIdInAndAuditType" resultType="com.iflytek.astron.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge" databaseId="postgresql">
+        SELECT * FROM preview_knowledge WHERE file_id IN
+        <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
+            #{fileId}
+        </foreach>
+        AND content::jsonb ->> 'auditSuggest' IN ('block', 'review')
         ORDER BY file_id ASC, seq_id ASC
     </select>
 

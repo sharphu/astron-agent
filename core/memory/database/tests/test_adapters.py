@@ -5,6 +5,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from memory.database.repository.middleware.adapters.base import DatabaseAdapter
+from memory.database.repository.middleware.adapters.kingbase_adapter import (
+    KingbaseAdapter,
+)
 from memory.database.repository.middleware.adapters.mysql_adapter import MySQLAdapter
 from memory.database.repository.middleware.adapters.postgresql_adapter import (
     PostgreSQLAdapter,
@@ -57,8 +60,9 @@ class TestDatabaseAdapterABC:
         assert actual == expected
 
     def test_both_adapters_are_subclasses(self) -> None:
-        """PostgreSQLAdapter and MySQLAdapter are subclasses of DatabaseAdapter."""
+        """PostgreSQL, Kingbase, and MySQL adapters are subclasses of DatabaseAdapter."""
         assert issubclass(PostgreSQLAdapter, DatabaseAdapter)
+        assert issubclass(KingbaseAdapter, DatabaseAdapter)
         assert issubclass(MySQLAdapter, DatabaseAdapter)
 
 
@@ -211,6 +215,69 @@ class TestPostgreSQLAdapter:
     def test_default_port(self) -> None:
         """Default port is 5432."""
         assert self.adapter.get_default_port() == 5432
+
+
+# ---------------------------------------------------------------------------
+# B2. KingbaseAdapter
+# ---------------------------------------------------------------------------
+
+
+class TestKingbaseAdapter:
+    """Tests for the KingbaseES adapter (PostgreSQL-compatible)."""
+
+    def setup_method(self) -> None:
+        """Create a fresh adapter for each test."""
+        self.adapter = KingbaseAdapter()
+
+    def test_get_db_type(self) -> None:
+        """get_db_type returns 'kingbase'."""
+        assert self.adapter.get_db_type() == "kingbase"
+
+    def test_get_sqlglot_dialect(self) -> None:
+        """get_sqlglot_dialect matches PostgreSQL parsing."""
+        assert self.adapter.get_sqlglot_dialect() == "postgres"
+
+    def test_build_async_url(self) -> None:
+        """build_async_url uses postgresql+asyncpg (PG-compatible wire protocol)."""
+        url = self.adapter.build_async_url("u", "p", "h", 54321, "db")
+        assert url == "postgresql+asyncpg://u:p@h:54321/db"
+
+    def test_build_sync_url_default_psycopg2(self) -> None:
+        """Default sync URL uses postgresql+psycopg2 (Alembic)."""
+        with patch.dict(os.environ, {"KINGBASE_SYNC_DRIVER": "psycopg2"}):
+            url = self.adapter.build_sync_url("u", "p", "h", 54321, "db")
+        assert url == "postgresql+psycopg2://u:p@h:54321/db"
+
+    def test_build_sync_url_ksycopg2(self) -> None:
+        """KINGBASE_SYNC_DRIVER=ksycopg2 uses kingbase dialect for Alembic only."""
+        with patch.dict(os.environ, {"KINGBASE_SYNC_DRIVER": "ksycopg2"}):
+            url = self.adapter.build_sync_url("u", "p", "h", 54321, "db")
+        assert url == "kingbase+ksycopg2://u:p@h:54321/db"
+
+    def test_build_sync_url_unset_defaults_to_psycopg2(self) -> None:
+        """Missing KINGBASE_SYNC_DRIVER behaves like psycopg2."""
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("KINGBASE_SYNC_DRIVER", None)
+            url = self.adapter.build_sync_url("u", "p", "h", 54321, "db")
+        assert url == "postgresql+psycopg2://u:p@h:54321/db"
+
+    def test_build_sync_url_invalid_driver(self) -> None:
+        """Unknown KINGBASE_SYNC_DRIVER raises ValueError."""
+        with patch.dict(os.environ, {"KINGBASE_SYNC_DRIVER": "oracle"}):
+            with pytest.raises(ValueError, match="Unsupported KINGBASE_SYNC_DRIVER"):
+                self.adapter.build_sync_url("u", "p", "h", 54321, "db")
+
+    def test_env_prefix(self) -> None:
+        """Environment variable prefix is 'KINGBASE'."""
+        assert self.adapter.get_env_prefix() == "KINGBASE"
+
+    def test_default_port(self) -> None:
+        """Default port is 54321 (common KingbaseES listen port)."""
+        assert self.adapter.get_default_port() == 54321
+
+    def test_subclass_of_postgresql_adapter(self) -> None:
+        """KingbaseAdapter extends PostgreSQLAdapter for shared behavior."""
+        assert isinstance(self.adapter, PostgreSQLAdapter)
 
 
 # ---------------------------------------------------------------------------
@@ -371,6 +438,12 @@ class TestAdapterRegistry:
         with patch.dict(os.environ, {"DB_TYPE": "mysql"}):
             adapter = get_adapter()
             assert isinstance(adapter, MySQLAdapter)
+
+    def test_kingbase_explicit(self) -> None:
+        """DB_TYPE=kingbase returns KingbaseAdapter."""
+        with patch.dict(os.environ, {"DB_TYPE": "kingbase"}):
+            adapter = get_adapter()
+            assert isinstance(adapter, KingbaseAdapter)
 
     def test_mixed_case(self) -> None:
         """DB_TYPE=PostgreSQL (mixed case) returns PostgreSQLAdapter."""

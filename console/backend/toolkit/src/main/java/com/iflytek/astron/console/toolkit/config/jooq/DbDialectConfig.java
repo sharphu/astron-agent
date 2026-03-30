@@ -16,7 +16,7 @@ public class DbDialectConfig {
         DbDialectType type = DbDialectType.fromString(sparkDBType);
         return switch (type) {
             case MYSQL -> new MysqlDialect();
-            case POSTGRES -> new PostgresDialect();
+            case POSTGRES, KINGBASE -> new PostgresDialect();
         };
     }
 }

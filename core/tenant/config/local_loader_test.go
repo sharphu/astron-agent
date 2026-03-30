@@ -60,7 +60,9 @@ func createValidatorForValidTOML(t *testing.T) func(t *testing.T, cfg *Config) {
 			"DataBase.DBType":       "mysql",
 			"DataBase.UserName":     "testuser",
 			"DataBase.Password":     "testpass",
-			"DataBase.Url":          "localhost:3306/testdb",
+			"DataBase.Host":         "localhost",
+			"DataBase.Port":         3306,
+			"DataBase.DBName":       "testdb",
 			"DataBase.MaxOpenConns": 10,
 			"DataBase.MaxIdleConns": 5,
 			"Log.LogFile":           "/tmp/test.log",
@@ -71,7 +73,9 @@ func createValidatorForValidTOML(t *testing.T) func(t *testing.T, cfg *Config) {
 		checkConfigField(t, "DataBase.DBType", cfg.DataBase.DBType, expectations["DataBase.DBType"])
 		checkConfigField(t, "DataBase.UserName", cfg.DataBase.UserName, expectations["DataBase.UserName"])
 		checkConfigField(t, "DataBase.Password", cfg.DataBase.Password, expectations["DataBase.Password"])
-		checkConfigField(t, "DataBase.Url", cfg.DataBase.Url, expectations["DataBase.Url"])
+		checkConfigField(t, "DataBase.Host", cfg.DataBase.Host, expectations["DataBase.Host"])
+		checkConfigField(t, "DataBase.Port", cfg.DataBase.Port, expectations["DataBase.Port"])
+		checkConfigField(t, "DataBase.DBName", cfg.DataBase.DBName, expectations["DataBase.DBName"])
 		checkConfigField(t, "DataBase.MaxOpenConns", cfg.DataBase.MaxOpenConns, expectations["DataBase.MaxOpenConns"])
 		checkConfigField(t, "DataBase.MaxIdleConns", cfg.DataBase.MaxIdleConns, expectations["DataBase.MaxIdleConns"])
 		checkConfigField(t, "Log.LogFile", cfg.Log.LogFile, expectations["Log.LogFile"])
@@ -82,7 +86,7 @@ func createValidatorForPartialTOML(t *testing.T) func(t *testing.T, cfg *Config)
 	return func(t *testing.T, cfg *Config) {
 		checkConfigField(t, "Server.Port", cfg.Server.Port, 9090)
 		checkConfigField(t, "Server.Location", cfg.Server.Location, "")
-		checkConfigField(t, "DataBase.DBType", cfg.DataBase.DBType, "postgresql")
+		checkConfigField(t, "DataBase.DBType", cfg.DataBase.DBType, "kingbase")
 		checkConfigField(t, "DataBase.UserName", cfg.DataBase.UserName, "partialuser")
 		checkConfigField(t, "DataBase.Password", cfg.DataBase.Password, "")
 		checkConfigField(t, "DataBase.MaxOpenConns", cfg.DataBase.MaxOpenConns, 0)
@@ -117,7 +121,9 @@ location = "us-east"
 dbType = "mysql"
 username = "testuser"
 password = "testpass"
-url = "localhost:3306/testdb"
+host = "localhost"
+port = 3306
+dbname = "testdb"
 maxOpenConns = 10
 maxIdleConns = 5
 
@@ -134,7 +140,7 @@ path = "/tmp/test.log"
 port = 9090
 
 [database]
-dbType = "postgresql"
+dbType = "kingbase"
 username = "partialuser"
 `,
 			wantErr:  false,

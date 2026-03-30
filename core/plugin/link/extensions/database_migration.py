@@ -22,6 +22,7 @@ from alembic.config import Config
 INIT_VERSION = "5c4f1b5ab83d"
 LOCK_KEY = "link_database_migration_lock"
 LOCK_TTL_SECONDS = int(os.getenv("LINK_DB_MIGRATION_LOCK_TTL", "60"))
+PG_FAMILY = {"kingbase", "postgresql", "postgres", "pg"}
 
 # MySQL error codes
 MYSQL_ERROR_SELECT_DENIED = 1142
@@ -38,6 +39,31 @@ logging.basicConfig(
 
 def _check_db_url() -> None:
     """Check DB URL and validate required env vars."""
+    db_type = (os.getenv(const.DB_TYPE_KEY, "mysql") or "mysql").lower().strip()
+    if db_type in PG_FAMILY:
+        kingbase_host = os.getenv("KINGBASE_HOST")
+        kingbase_port = os.getenv("KINGBASE_PORT")
+        kingbase_user = os.getenv("KINGBASE_USER")
+        kingbase_password = os.getenv("KINGBASE_PASSWORD")
+        kingbase_db = os.getenv("KINGBASE_DB")
+        missing_envs = [
+            key
+            for key, value in [
+                ("KINGBASE_HOST", kingbase_host),
+                ("KINGBASE_PORT", kingbase_port),
+                ("KINGBASE_USER", kingbase_user),
+                ("KINGBASE_PASSWORD", kingbase_password),
+                ("KINGBASE_DB", kingbase_db),
+            ]
+            if not value
+        ]
+        if missing_envs:
+            raise ValueError(
+                "Missing required Kingbase environment variables for migration: "
+                f"{', '.join(missing_envs)}"
+            )
+        return
+
     mysql_host = os.getenv(const.MYSQL_HOST_KEY)
     mysql_port = os.getenv(const.MYSQL_PORT_KEY)
     mysql_user = os.getenv(const.MYSQL_USER_KEY)

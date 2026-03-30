@@ -35,7 +35,7 @@
         ) t1 where 1=1
         <if test="content!=null and content !=''">
             and (
-            instr(t1.name, #{content})
+            POSITION(#{content} IN t1.name) > 0
 <!--                or instr(t1.description, #{content})-->
             )
         </if>
@@ -79,7 +79,7 @@
     </if>) and deleted = 0
         ) t1 where 1=1
         <if test="content!=null and content !=''">
-            and (instr(t1.name, #{content}) or instr(t1.description, #{content}))
+            and (POSITION(#{content} IN t1.name) > 0 or POSITION(#{content} IN t1.description) > 0)
         </if>
         order by t1.is_top desc, t1.update_time desc
     </select>
@@ -89,7 +89,7 @@
         select * from repo where (user_id = #{userId} <if test="includeIds!=null and includeIds.size()>0">
         or id in <foreach collection="includeIds" item="includeId" open="(" close=")" separator=",">#{includeId}</foreach>
     </if>) and deleted = 0) t1 where 1=1  <if test="content!=null and content !=''">
-        and (instr(t1.name, #{content}) or instr(t1.description, #{content}))
+        and (POSITION(#{content} IN t1.name) > 0 or POSITION(#{content} IN t1.description) > 0)
     </if>
     </select>
 </mapper>

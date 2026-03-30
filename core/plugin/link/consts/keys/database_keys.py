@@ -1,0 +1,2 @@
+DB_TYPE_KEY = "DB_TYPE"
+

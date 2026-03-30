@@ -5,7 +5,8 @@ import java.util.Locale;
 public enum DbDialectType {
 
     MYSQL,
-    POSTGRES;
+    POSTGRES,
+    KINGBASE;
 
     public static DbDialectType fromString(String value) {
         if (value == null || value.isBlank()) {
@@ -18,6 +19,8 @@ public enum DbDialectType {
             case "postgresql":
             case "pg":
                 return POSTGRES;
+            case "kingbase":
+                return KINGBASE;
             default:
                 throw new IllegalArgumentException("Unsupported DB dialect: " + value);
         }

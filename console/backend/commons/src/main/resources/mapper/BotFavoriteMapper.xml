@@ -3,7 +3,7 @@
 <mapper namespace="com.iflytek.astron.console.commons.mapper.bot.BotFavoriteMapper">
     <sql id="check_from_where">
         FROM
-        `bot_favorite` bf
+        bot_favorite bf
         LEFT JOIN chat_bot_base a on bf.bot_id = a.id
         LEFT JOIN chat_bot_market b ON a.id = b.bot_id
         LEFT JOIN chat_list c ON a.id = c.bot_id and c.is_botweb = 0 and c.is_delete = 0 and c.root_flag = 1 and c.uid = #{uid}
@@ -36,9 +36,9 @@
         a.create_time AS createTime,
         a.support_context AS supportContext,
         b.create_time As applyTime,
-        ifnull(b.hot_num, 0) as hotNum
+        COALESCE(b.hot_num, 0) as hotNum
         FROM
-            `bot_favorite` bf
+            bot_favorite bf
                 LEFT JOIN chat_bot_base a on bf.bot_id = a.id
                 LEFT JOIN chat_bot_market b ON a.id = b.bot_id
                 LEFT JOIN chat_list c ON a.id = c.bot_id and c.is_botweb = 0 and c.is_delete = 0 and c.root_flag = 1 and c.uid = #{uid}
@@ -47,13 +47,13 @@
           AND a.is_delete = 0
           AND (b.is_delete is null or b.is_delete = 0)
         order by bf.id desc
-        Limit #{offset},#{pageSize}
+        Limit #{pageSize} OFFSET #{offset}
     </select>
     <select id="countBotPage" resultType="java.lang.Long">
         SELECT
             count(bf.id)
         FROM
-            `bot_favorite` bf
+            bot_favorite bf
                 LEFT JOIN chat_bot_base a on bf.bot_id = a.id
                 LEFT JOIN chat_bot_market b ON a.id = b.bot_id
                 LEFT JOIN chat_list c ON a.id = c.bot_id AND c.is_botweb = 0 AND c.is_delete = 0 and c.root_flag = 1 and  c.uid = #{uid}

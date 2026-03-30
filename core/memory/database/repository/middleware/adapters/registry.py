@@ -30,6 +30,12 @@ def get_adapter() -> DatabaseAdapter:
         )
 
         _adapter_instance = PostgreSQLAdapter()
+    elif db_type == "kingbase":
+        from memory.database.repository.middleware.adapters.kingbase_adapter import (
+            KingbaseAdapter,
+        )
+
+        _adapter_instance = KingbaseAdapter()
     elif db_type == "mysql":
         from memory.database.repository.middleware.adapters.mysql_adapter import (
             MySQLAdapter,
@@ -38,7 +44,8 @@ def get_adapter() -> DatabaseAdapter:
         _adapter_instance = MySQLAdapter()
     else:
         raise ValueError(
-            f"Unsupported DB_TYPE: '{db_type}'. Supported types: postgresql, mysql"
+            f"Unsupported DB_TYPE: '{db_type}'. "
+            f"Supported types: postgresql, kingbase, mysql"
         )
 
     return _adapter_instance

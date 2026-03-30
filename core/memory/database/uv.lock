@@ -450,6 +450,7 @@ dependencies = [
     { name = "flake8" },
     { name = "isort" },
     { name = "jsonschema" },
+    { name = "ksycopg2", marker = "sys_platform != 'darwin'" },
     { name = "loguru" },
     { name = "mypy" },
     { name = "openpyxl" },
@@ -495,6 +496,7 @@ requires-dist = [
     { name = "flake8", specifier = "==7.0.0" },
     { name = "isort", specifier = "==5.13.2" },
     { name = "jsonschema", specifier = ">=4.23.0" },
+    { name = "ksycopg2", marker = "sys_platform != 'darwin'", specifier = ">=2.9.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mypy", specifier = "==1.18.2" },
     { name = "openpyxl", specifier = ">=3.1.5" },
@@ -776,6 +778,22 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/bf/ce/46fbd9c8119cfc3581ee5643ea49464d168028cfb5caff5fc0596d0cf914/jsonschema_specifications-2025.4.1.tar.gz", hash = "sha256:630159c9f4dbea161a6a2205c3011cc4f18ff381b189fff48bb39b9bf26ae608", size = 15513, upload-time = "2025-04-23T12:34:07.418Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/01/0e/b27cdbaccf30b890c40ed1da9fd4a3593a5cf94dae54fb34f8a4b74fcd3f/jsonschema_specifications-2025.4.1-py3-none-any.whl", hash = "sha256:4653bffbd6584f7de83a67e0d620ef16900b390ddc7939d56684d6c81e33f1af", size = 18437, upload-time = "2025-04-23T12:34:05.422Z" },
+]
+
+[[package]]
+name = "ksycopg2"
+version = "2.9.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6e/51/56743b09e29802a597ca120b412e5b6d3bbad6a9551a5aa32dfc771c3add/ksycopg2-2.9.0-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:9b48665903bf5294c52c38d188b21a66bea8f1a17eb245e1b0cc37c5d392450c", size = 2551041, upload-time = "2025-05-14T07:23:37.872Z" },
+    { url = "https://files.pythonhosted.org/packages/10/25/5e7c5a6100b887a80a3faff08e8187d165ee50d500dc48046be09b762cd7/ksycopg2-2.9.0-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:024560bd25391e7b3a05f5106f2880f2e05fb9d54b4e3e8aca6460b444205bcb", size = 2447132, upload-time = "2025-05-14T07:23:45.035Z" },
+    { url = "https://files.pythonhosted.org/packages/99/11/a17cc43b48f0829bfc663a974de2ecce1c3b3eee8e0f7c61a158b59845cb/ksycopg2-2.9.0-cp311-cp311-win_amd64.whl", hash = "sha256:ce5e645b5040cb29ddf2d390acb021849a9bbe36fdf3dd1cf2513bd3e298bd0e", size = 149282, upload-time = "2025-05-14T07:23:46.612Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/7c/27576f306652cce39dc8fbdedeb778759ae988aed5763c24b79b66042d46/ksycopg2-2.9.0-cp312-cp312-manylinux1_x86_64.whl", hash = "sha256:efd50e2eeb947bfb3f7719e33f7cb383242914652e41607725cb3cb32a84614f", size = 2568436, upload-time = "2025-05-14T07:23:53.033Z" },
+    { url = "https://files.pythonhosted.org/packages/57/92/1e6b401f4eb65b9dc912863fda5210533067403e0dd774f1437834a83c2f/ksycopg2-2.9.0-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:3025a71d3c8bc18a4ac4bb563f140418f70c13540ad1ac947c739eacbcdc194f", size = 2457367, upload-time = "2025-05-14T07:38:25.552Z" },
+    { url = "https://files.pythonhosted.org/packages/54/91/c6d6ec4f665a09f1c442664ca21c319fbdb1359227c0a8c687b0304d2165/ksycopg2-2.9.0-cp312-cp312-win_amd64.whl", hash = "sha256:0e5d63fd9fb48872a5e64d569202a12ff48074e7c68e52a199b429e70904fdf4", size = 2318279, upload-time = "2025-05-14T07:38:31.416Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/d1/d499dc4f98ba4ed66cab9fb753269af199f463382f1b9a75650f1952c8ab/ksycopg2-2.9.0-cp313-cp313-manylinux1_x86_64.whl", hash = "sha256:ab6d9f17b526a1f3de3e92f344653c63c43af0011b426f0a6eb5186df6030ed6", size = 2566451, upload-time = "2025-05-14T07:38:38.528Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/e1/6fdcdf72296f8da2cf79bff285917db11d1b1cf67c5c55a9659ca370c82c/ksycopg2-2.9.0-cp313-cp313-manylinux2014_aarch64.whl", hash = "sha256:b3bd4b5d7f36e6baffb090239d20a665f2491f6e796ab68942a61f664905b847", size = 2454791, upload-time = "2025-05-14T07:38:44.616Z" },
+    { url = "https://files.pythonhosted.org/packages/30/53/e5071e702496a046a3b5060a40fa720dbd71a08bb6064358f7dba5b2d368/ksycopg2-2.9.0-cp313-cp313-win_amd64.whl", hash = "sha256:5b741efb714aa13a98776a6a06c461f39f0ca4c1c6f5fe811d8e1291f8c13c0f", size = 2318293, upload-time = "2025-05-14T07:38:50.784Z" },
 ]
 
 [[package]]

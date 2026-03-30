@@ -33,7 +33,9 @@ func createValidatorForAllEnvVars(t *testing.T) func(t *testing.T, cfg *Config) 
 			"DataBase.DBType":       "mysql",
 			"DataBase.UserName":     "envuser",
 			"DataBase.Password":     "envpass",
-			"DataBase.Url":          "localhost:3306/envdb",
+			"DataBase.Host":         "envhost",
+			"DataBase.Port":         3306,
+			"DataBase.DBName":       "envdb",
 			"DataBase.MaxOpenConns": 15,
 			"DataBase.MaxIdleConns": 8,
 			"Log.LogFile":           "/var/log/env.log",
@@ -44,7 +46,9 @@ func createValidatorForAllEnvVars(t *testing.T) func(t *testing.T, cfg *Config) 
 		checkField(t, "DataBase.DBType", cfg.DataBase.DBType, expectations["DataBase.DBType"])
 		checkField(t, "DataBase.UserName", cfg.DataBase.UserName, expectations["DataBase.UserName"])
 		checkField(t, "DataBase.Password", cfg.DataBase.Password, expectations["DataBase.Password"])
-		checkField(t, "DataBase.Url", cfg.DataBase.Url, expectations["DataBase.Url"])
+		checkField(t, "DataBase.Host", cfg.DataBase.Host, expectations["DataBase.Host"])
+		checkField(t, "DataBase.Port", cfg.DataBase.Port, expectations["DataBase.Port"])
+		checkField(t, "DataBase.DBName", cfg.DataBase.DBName, expectations["DataBase.DBName"])
 		checkField(t, "DataBase.MaxOpenConns", cfg.DataBase.MaxOpenConns, expectations["DataBase.MaxOpenConns"])
 		checkField(t, "DataBase.MaxIdleConns", cfg.DataBase.MaxIdleConns, expectations["DataBase.MaxIdleConns"])
 		checkField(t, "Log.LogFile", cfg.Log.LogFile, expectations["Log.LogFile"])
@@ -62,7 +66,7 @@ func createValidatorForNoEnvVars(t *testing.T) func(t *testing.T, cfg *Config) {
 func createValidatorForPartialEnvVars(t *testing.T) func(t *testing.T, cfg *Config) {
 	return func(t *testing.T, cfg *Config) {
 		checkField(t, "Server.Port", cfg.Server.Port, 9090)
-		checkField(t, "DataBase.DBType", cfg.DataBase.DBType, "postgresql")
+		checkField(t, "DataBase.DBType", cfg.DataBase.DBType, "kingbase")
 		checkField(t, "Log.LogFile", cfg.Log.LogFile, "/tmp/partial.log")
 		checkField(t, "Server.Location", cfg.Server.Location, "")
 		checkField(t, "DataBase.UserName", cfg.DataBase.UserName, "")
@@ -87,7 +91,8 @@ func setupEnvironment(envVars map[string]string) (func(), []string) {
 	envKeys := []string{
 		"SERVICE_PORT", "SERVICE_LOCATION",
 		"DATABASE_DB_TYPE", "DATABASE_USERNAME", "DATABASE_PASSWORD",
-		"DATABASE_URL", "DATABASE_MAX_OPEN_CONNS", "DATABASE_MAX_IDLE_CONNS",
+		"DATABASE_HOST", "DATABASE_PORT", "DATABASE_DBNAME",
+		"DATABASE_MAX_OPEN_CONNS", "DATABASE_MAX_IDLE_CONNS",
 		"LOG_PATH",
 	}
 
@@ -124,7 +129,9 @@ func TestEnvLoader_Load(t *testing.T) {
 				"DATABASE_DB_TYPE":        "mysql",
 				"DATABASE_USERNAME":       "envuser",
 				"DATABASE_PASSWORD":       "envpass",
-				"DATABASE_URL":            "localhost:3306/envdb",
+				"DATABASE_HOST":           "envhost",
+				"DATABASE_PORT":           "3306",
+				"DATABASE_DBNAME":         "envdb",
 				"DATABASE_MAX_OPEN_CONNS": "15",
 				"DATABASE_MAX_IDLE_CONNS": "8",
 				"LOG_PATH":                "/var/log/env.log",
@@ -142,7 +149,7 @@ func TestEnvLoader_Load(t *testing.T) {
 			name: "partial environment variables set",
 			envVars: map[string]string{
 				"SERVICE_PORT":     "9090",
-				"DATABASE_DB_TYPE": "postgresql",
+				"DATABASE_DB_TYPE": "kingbase",
 				"LOG_PATH":         "/tmp/partial.log",
 			},
 			wantErr:  false,

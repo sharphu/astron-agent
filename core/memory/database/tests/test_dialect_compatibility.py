@@ -10,6 +10,9 @@ from unittest.mock import MagicMock, patch
 from memory.database.api.v1.exec_ddl import _rebuild_ddl_from_ast, is_ddl_allowed
 from memory.database.api.v1.exec_dml import rewrite_dml_with_uid_and_limit
 from memory.database.repository.middleware.adapters import get_adapter
+from memory.database.repository.middleware.adapters.kingbase_adapter import (
+    KingbaseAdapter,
+)
 from memory.database.repository.middleware.adapters.mysql_adapter import MySQLAdapter
 from memory.database.repository.middleware.adapters.postgresql_adapter import (
     PostgreSQLAdapter,
@@ -71,6 +74,23 @@ class TestDDLDialectCompatibility:
             assert (
                 result is True
             ), "PostgreSQL CREATE TABLE with SERIAL should be allowed"
+
+    def test_is_ddl_allowed_kingbase_uses_postgres_dialect(self) -> None:
+        """Kingbase uses sqlglot postgres dialect like PostgreSQL."""
+        with patch.dict(os.environ, {"DB_TYPE": "kingbase"}):
+            reset_adapter()
+            adapter = get_adapter()
+            assert isinstance(adapter, KingbaseAdapter)
+
+            mock_span_context = MagicMock()
+            pg_ddl = """
+                CREATE TABLE users (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(255) NOT NULL
+                )
+            """
+            result = is_ddl_allowed(pg_ddl, mock_span_context)
+            assert result is True
 
     def test_is_ddl_allowed_mysql_alter_table(self) -> None:
         """Test MySQL-specific ALTER TABLE syntax."""
