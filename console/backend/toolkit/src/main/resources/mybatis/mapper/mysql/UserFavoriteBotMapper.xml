@@ -31,8 +31,8 @@
     </select>
     <update id="updateFavoriteStatus">
         update
-        user_favorite_bot uft
-        set uft.is_deleted = 1
+        user_favorite_bot
+        set is_deleted = 1
         where id = #{id}
     </update>
 </mapper>

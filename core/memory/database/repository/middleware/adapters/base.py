@@ -14,7 +14,7 @@ class DatabaseAdapter(ABC):
 
     @abstractmethod
     def get_db_type(self) -> str:
-        """Return the database type identifier (e.g., 'postgresql', 'mysql')."""
+        """Return the database type identifier (e.g., 'postgresql', 'kingbase', 'mysql')."""
 
     @abstractmethod
     def get_sqlglot_dialect(self) -> str:

@@ -21,9 +21,11 @@ func (l *EnvLoader) Load(cfg *Config) error {
 		{"SERVICE_PORT", l.setServicePort},
 		{"SERVICE_LOCATION", l.setServiceLocation},
 		{"DATABASE_DB_TYPE", l.setDatabaseDBType},
+		{"DATABASE_HOST", l.setDatabaseHost},
+		{"DATABASE_PORT", l.setDatabasePort},
 		{"DATABASE_USERNAME", l.setDatabaseUsername},
 		{"DATABASE_PASSWORD", l.setDatabasePassword},
-		{"DATABASE_URL", l.setDatabaseURL},
+		{"DATABASE_DBNAME", l.setDatabaseDBName},
 		{"DATABASE_MAX_OPEN_CONNS", l.setDatabaseMaxOpenConns},
 		{"DATABASE_MAX_IDLE_CONNS", l.setDatabaseMaxIdleConns},
 		{"LOG_PATH", l.setLogPath},
@@ -67,8 +69,20 @@ func (l *EnvLoader) setDatabasePassword(cfg *Config, value string) error {
 	return nil
 }
 
-func (l *EnvLoader) setDatabaseURL(cfg *Config, value string) error {
-	cfg.DataBase.Url = value
+func (l *EnvLoader) setDatabaseHost(cfg *Config, value string) error {
+	cfg.DataBase.Host = value
+	return nil
+}
+
+func (l *EnvLoader) setDatabasePort(cfg *Config, value string) error {
+	if n, err := fmt.Sscanf(value, "%d", &cfg.DataBase.Port); err != nil || n != 1 {
+		return fmt.Errorf("invalid DATABASE_PORT: %v", err)
+	}
+	return nil
+}
+
+func (l *EnvLoader) setDatabaseDBName(cfg *Config, value string) error {
+	cfg.DataBase.DBName = value
 	return nil
 }
 

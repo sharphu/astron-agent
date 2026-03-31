@@ -4,11 +4,24 @@ location = "ss"
 
 [database]
 dbType = "mysql"
+host="localhost"
+port=3306
 username = ""
 password = ""
-url = ""
+dbname="tenant"
 maxOpenConns = 10
 maxIdleConns = 5
+
+#For Kingbase
+#[database]
+#dbType = "kingbase"
+#host="127.0.0.1"
+#port=54321
+#username = "SYSTEM"
+#password = "123456"
+#dbname="tenant"
+#maxOpenConns = 10
+#maxIdleConns = 5
 
 [log]
 logFile = "./logs/app.log"

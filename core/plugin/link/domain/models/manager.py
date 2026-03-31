@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, text
 
 data_base_singleton: Optional[DatabaseService] = None
 redis_singleton: Optional[RedisService] = None
+PG_FAMILY = {"kingbase", "postgresql", "postgres", "pg"}
 
 
 def init_data_base() -> None:
@@ -30,6 +31,60 @@ def init_data_base() -> None:
         conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{db}`"))
         conn.commit()
     base_engine.dispose()
+    db_type = (os.getenv(const.DB_TYPE_KEY, "mysql") or "mysql").lower().strip()
+    if db_type in PG_FAMILY:
+        host = os.getenv("KINGBASE_HOST")
+        port = os.getenv("KINGBASE_PORT")
+        user = os.getenv("KINGBASE_USER")
+        password = os.getenv("KINGBASE_PASSWORD")
+        db = os.getenv("KINGBASE_DB")
+        missing = [
+            key
+            for key, value in [
+                ("KINGBASE_HOST", host),
+                ("KINGBASE_PORT", port),
+                ("KINGBASE_USER", user),
+                ("KINGBASE_PASSWORD", password),
+                ("KINGBASE_DB", db),
+            ]
+            if not value
+        ]
+        if missing:
+            raise ValueError(
+                "Missing required KingBase environment variables: "
+                + ", ".join(missing)
+            )
+        sync_driver = os.getenv("KINGBASE_SYNC_DRIVER", "psycopg2").lower().strip()
+        if sync_driver == "ksycopg2":
+            db_url = f"kingbase+ksycopg2://{user}:{password}@{host}:{port}/{db}"
+        else:
+            db_url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
+    else:
+        mysql_host = os.getenv(const.MYSQL_HOST_KEY)
+        mysql_port = os.getenv(const.MYSQL_PORT_KEY)
+        user = os.getenv(const.MYSQL_USER_KEY)
+        password = os.getenv(const.MYSQL_PASSWORD_KEY)
+        db = os.getenv(const.MYSQL_DB_KEY)
+        missing = [
+            key
+            for key, value in [
+                (const.MYSQL_HOST_KEY, mysql_host),
+                (const.MYSQL_PORT_KEY, mysql_port),
+                (const.MYSQL_USER_KEY, user),
+                (const.MYSQL_PASSWORD_KEY, password),
+                (const.MYSQL_DB_KEY, db),
+            ]
+            if not value
+        ]
+        if missing:
+            raise ValueError(
+                "Missing required MySQL environment variables: "
+                + ", ".join(missing)
+            )
+        db_url = (
+            f"mysql+pymysql://{user}:{password}@{mysql_host}:{mysql_port}/{db}"
+            "?charset=utf8mb4"
+        )
     data_base_singleton = DatabaseService(database_url=db_url)
 
     # Initialize Redis service using global singleton pattern

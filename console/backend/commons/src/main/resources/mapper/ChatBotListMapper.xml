@@ -6,7 +6,7 @@
         SELECT
         count(a.uid)
         FROM
-        `chat_bot_base` a
+        chat_bot_base a
         LEFT JOIN chat_bot_market b ON a.id = b.bot_id
         LEFT JOIN chat_list c ON a.id = c.bot_id AND c.is_botweb = 0 AND c.is_delete = 0 and c.root_flag = 1 and c.uid =
         #{uid}
@@ -37,7 +37,7 @@
 
     <sql id="check_from_where">
         FROM
-        `chat_bot_base` a
+        chat_bot_base a
         LEFT JOIN chat_bot_market b ON a.id = b.bot_id
         LEFT JOIN chat_list c ON a.id = c.bot_id and c.is_botweb = 0 and c.is_delete = 0 and c.root_flag = 1 and c.uid =
         #{uid}
@@ -93,13 +93,13 @@
         ELSE
         b.bot_status
         END AS botStatus,
-        CASE WHEN b.block_reason IS NULL THEN ""
+        CASE WHEN b.block_reason IS NULL THEN ''
         ELSE b.block_reason
         END AS blockReason,
         a.create_time AS createTime,
         a.support_context AS supportContext,
         b.create_time As applyTime,
-        ifnull(b.hot_num, 0) as hotNum
+        COALESCE(b.hot_num, 0) as hotNum
         <include refid="check_from_where"/>
         <if test="flag == 1">
             having botStatus = -9
@@ -113,7 +113,7 @@
             </otherwise>
         </choose>
         <if test="offset != null and pageSize != null">
-            Limit #{offset},#{pageSize}
+            Limit #{pageSize} OFFSET #{offset}
         </if>
     </select>
 

@@ -11,10 +11,11 @@ spring:
   application:
     name: astron-console-hub
   datasource:
-    url: ${MYSQL_URL:jdbc:mysql://db:3306/astron_console?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&createDatabaseIfNotExist=true}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${MYSQL_USER:astron}
-    password: ${MYSQL_PASSWORD:astron-dev-env-db}
+    db-type: ${DB_TYPE:mysql}
+    url: ${DATASOURCE_URL:${MYSQL_URL:jdbc:mysql://db:3306/astron_console?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&createDatabaseIfNotExist=true}}
+    driver-class-name: ${DATASOURCE_DRIVER:com.mysql.cj.jdbc.Driver}
+    username: ${DATASOURCE_USERNAME:${MYSQL_USER:astron}}
+    password: ${DATASOURCE_PASSWORD:${MYSQL_PASSWORD:astron-dev-env-db}}
     # HikariCP connection pool configuration
     hikari:
       # Maximum pool size
@@ -66,8 +67,10 @@ spring:
   # Flyway database migration configuration
   flyway:
     enabled: ${FLYWAY_ENABLED:true}
-    # Migration scripts location
-    locations: classpath:db/migration
+    # Migration scripts location (override with FLYWAY_LOCATIONS for KingBase/PostgreSQL)
+    # For MySQL: classpath:db/migration/mysql (default)
+    # For KingBase/PostgreSQL: classpath:db/migration/postgresql
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/mysql}
     # Baseline on migrate (for existing databases)
     baseline-on-migrate: true
     # Baseline version

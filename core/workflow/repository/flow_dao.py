@@ -43,10 +43,20 @@ def get_latest_published_flow_by(
         ORDER BY
             -- Major version number (extract from "v1.0" format)
             CAST(
-                SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', 1), 'v', -1) AS SIGNED
+                CASE
+                    WHEN POSITION('.' IN REPLACE(version, 'v', '')) > 0
+                    THEN SUBSTRING(REPLACE(version, 'v', '') FROM 1 FOR POSITION('.' IN REPLACE(version, 'v', '')) - 1)
+                    ELSE REPLACE(version, 'v', '')
+                END AS INTEGER
             ) DESC,
             -- Minor version number
-            CAST(SUBSTRING_INDEX(version, '.', -1) AS SIGNED) DESC
+            CAST(
+                CASE
+                    WHEN POSITION('.' IN REPLACE(version, 'v', '')) > 0
+                    THEN SUBSTRING(REPLACE(version, 'v', '') FROM POSITION('.' IN REPLACE(version, 'v', '')) + 1)
+                    ELSE '0'
+                END AS INTEGER
+            ) DESC
         LIMIT 1;
     """
     )

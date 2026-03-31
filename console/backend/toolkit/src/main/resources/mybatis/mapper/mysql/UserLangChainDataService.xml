@@ -38,6 +38,6 @@
                  LEFT JOIN node_info n ON w.flow_id = n.flow_id
         WHERE w.deleted = 0
           AND w.uid = #{uid}
-          AND n.`domain` = #{domain};
+          AND n.domain = #{domain};
     </select>
 </mapper>

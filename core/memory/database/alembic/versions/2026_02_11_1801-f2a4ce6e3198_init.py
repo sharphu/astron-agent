@@ -23,9 +23,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def _get_schema() -> Union[str, None]:
-    """Get the schema based on DB_TYPE. PostgreSQL uses sparkdb_manager schema, MySQL uses None."""
+    """Get the schema based on DB_TYPE. PostgreSQL/Kingbase use sparkdb_manager, MySQL None."""
     db_type = os.getenv("DB_TYPE", "postgresql").lower()
-    if db_type == "postgresql":
+    if db_type in ("postgresql", "kingbase"):
         return "sparkdb_manager"
     return None
 

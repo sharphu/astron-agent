@@ -23,7 +23,9 @@ func TestInitRouter(t *testing.T) {
 	cfg.DataBase.DBType = "mysql"
 	cfg.DataBase.UserName = "test"
 	cfg.DataBase.Password = "test"
-	cfg.DataBase.Url = "localhost:3306/test_db"
+	cfg.DataBase.Host = "localhost"
+	cfg.DataBase.Port = 3306
+	cfg.DataBase.DBName = "test_db"
 	cfg.DataBase.MaxOpenConns = 10
 	cfg.DataBase.MaxIdleConns = 5
 	cfg.Log.LogFile = "/tmp/test.log"

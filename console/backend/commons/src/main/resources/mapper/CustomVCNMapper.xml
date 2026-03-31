@@ -3,10 +3,10 @@
 <mapper namespace="com.iflytek.astron.console.commons.mapper.vcn.CustomVCNMapper">
     <select id="getVcnByCode" resultType="com.iflytek.astron.console.commons.dto.vcn.CustomV2VCNDTO">
         select cv.id          as vcnId,
-               cv.`uid`       as uid,
-               cv.`name`      as name,
+               cv.uid         as uid,
+               cv.name        as name,
                cv.vcn_code    as vcnCode,
-               cv.`sex`,
+               cv.sex,
                cv.uid,
                (cv.sex + 5)   as category,
                cv.share,
@@ -18,6 +18,6 @@
                            on cv.agent_id = vcpa.id
         where cv.vcn_code = #{vcnCode}
           and cv.status != 0 and cv.share = 0
-        order by cv.id desc, cv.`status` desc limit 1
+        order by cv.id desc, cv.status desc limit 1
     </select>
 </mapper>
