@@ -803,12 +803,12 @@ CREATE TABLE share_qa
     resp_type     varchar(128)  DEFAULT NULL ,
     resp_url      varchar(512)  DEFAULT NULL ,
     chat_key      varchar(64)   DEFAULT NULL ,
-    PRIMARY KEY (id),
-    KEY             uin_uid_share-chat-id (uid,share_chat_id));
+    PRIMARY KEY (id));
 
 CREATE INDEX share_qa_idx_uid ON share_qa (uid);
 CREATE INDEX share_qa_idx_resp_type ON share_qa (resp_type);
 CREATE INDEX share_qa_idx_share_chat_id ON share_qa (share_chat_id);
+CREATE INDEX "uin_uid_share-chat-id" ON share_qa (uid,share_chat_id);
 
 DROP TABLE IF EXISTS system_user;
 CREATE TABLE system_user
@@ -1148,8 +1148,8 @@ CREATE INDEX xingchen_prompt_version_idx_commit_user ON xingchen_prompt_version 
 CREATE INDEX xingchen_prompt_version_idx_commit_time ON xingchen_prompt_version (commit_time);
 CREATE INDEX xingchen_prompt_version_idx_create_time ON xingchen_prompt_version (create_time);
 
-DROP TABLE IF EXISTS z-bot_model_config_copy;
-CREATE TABLE z-bot_model_config_copy
+DROP TABLE IF EXISTS "z-bot_model_config_copy";
+CREATE TABLE "z-bot_model_config_copy"
 (
     id           BIGSERIAL,
     bot_id       bigint NOT NULL ,
@@ -1158,8 +1158,8 @@ CREATE TABLE z-bot_model_config_copy
     PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS z-bot_repo_subscript;
-CREATE TABLE z-bot_repo_subscript
+DROP TABLE IF EXISTS "z-bot_repo_subscript";
+CREATE TABLE "z-bot_repo_subscript"
 (
     id          BIGSERIAL,
     bot_id      bigint      NOT NULL ,
@@ -1169,8 +1169,8 @@ CREATE TABLE z-bot_repo_subscript
     PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS z-workflow_dialog-bak;
-CREATE TABLE z-workflow_dialog-bak
+DROP TABLE IF EXISTS "z-workflow_dialog-bak";
+CREATE TABLE "z-workflow_dialog-bak"
 (
     id          BIGSERIAL,
     workflow_id bigint   DEFAULT NULL,
@@ -1178,9 +1178,10 @@ CREATE TABLE z-workflow_dialog-bak
     answer      text,
     data        TEXT,
     create_time TIMESTAMP DEFAULT NULL,
-    PRIMARY KEY (id),
-    KEY           workflow_id (workflow_id)
+    PRIMARY KEY (id)
 );
+
+CREATE INDEX z_workflow_dialog_bak_idx_workflow_id ON "z-workflow_dialog-bak" (workflow_id);
 
 DROP TABLE IF EXISTS app_mst;
 CREATE TABLE app_mst (
@@ -1262,8 +1263,7 @@ create table pronunciation_person_config
     deleted            SMALLINT  default 0                 null ,
     create_time        TIMESTAMP default CURRENT_TIMESTAMP null ,
     update_time        TIMESTAMP default CURRENT_TIMESTAMP null
-)
-     charset = utf8mb4;
+);
 
 DROP TABLE IF EXISTS custom_speaker;
 create table custom_speaker
@@ -1281,6 +1281,6 @@ create table custom_speaker
     constraint uni_task_id
         unique (task_id));
 
-CREATE INDEX pronunciation_person_config_idx_asset_id ON pronunciation_person_config (asset_id);
-CREATE INDEX pronunciation_person_config_idx_bot_id ON pronunciation_person_config (space_id);
+CREATE INDEX custom_speaker_idx_asset_id ON custom_speaker (asset_id);
+CREATE INDEX custom_speaker_idx_bot_id ON custom_speaker (space_id);
 

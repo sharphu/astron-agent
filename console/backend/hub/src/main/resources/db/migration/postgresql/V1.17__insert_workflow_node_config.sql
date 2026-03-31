@@ -1,5 +1,5 @@
-ALTER TABLE astron_console.config_info ADD order_no INT NULL;
-ALTER TABLE astron_console.config_info_en ADD order_no INT NULL;
+ALTER TABLE config_info ADD order_no INT NULL;
+ALTER TABLE config_info_en ADD order_no INT NULL;
 
 INSERT INTO config_info (category, code, name, value, is_valid, remarks, create_time, update_time, order_no) VALUES('WORKFLOW_NODE_TEMPLATE', '1,2', '工具', '{
     "aliasName": "MCP",
